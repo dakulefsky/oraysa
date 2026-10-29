@@ -37,6 +37,7 @@
     const root = document.documentElement;
     const map = {
       '--color-primary': cs.primary, '--color-on-primary': cs.onPrimary,
+      '--color-primary-container': cs.primaryContainer, '--color-on-primary-container': cs.onPrimaryContainer,
       '--color-secondary': cs.secondary, '--color-on-secondary': cs.onSecondary,
       '--color-secondary-container': cs.secondaryContainer, '--color-on-secondary-container': cs.onSecondaryContainer,
       '--color-tertiary': cs.tertiary,
@@ -45,9 +46,11 @@
       '--color-surface-container-highest': cs.surfaceContainerHighest,
       '--color-error': cs.error, '--color-on-error': cs.onError,
       '--color-outline': cs.outline, '--color-outline-variant': cs.outlineVariant,
+      '--color-inverse-surface': cs.inverseSurface, '--color-on-inverse-surface': cs.onInverseSurface,
       '--color-scrim': cs.scrim,
     };
     for (const [k, v] of Object.entries(map)) if (v) root.style.setProperty(k, v);
+    root.style.colorScheme = theme.mode === 'dark' ? 'dark' : 'light';
     document.body.classList.toggle('dark-mode', theme.mode === 'dark');
     const t = theme.typography;
     if (t) {

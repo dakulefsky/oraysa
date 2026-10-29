@@ -1,21 +1,26 @@
 :root {
-  --color-primary: #6750A4;
+  color-scheme: light;
+  --color-primary: #805610;
   --color-on-primary: #FFFFFF;
-  --color-secondary: #625B71;
+  --color-primary-container: #FFDDB3;
+  --color-on-primary-container: #633F00;
+  --color-secondary: #6F5B40;
   --color-on-secondary: #FFFFFF;
-  --color-secondary-container: #E8DEF8;
-  --color-on-secondary-container: #1D192B;
-  --color-tertiary: #7D5260;
-  --color-surface: #FFFBFE;
-  --color-on-surface: #1C1B1F;
-  --color-on-surface-variant: #49454F;
-  --color-surface-container: #F3EDF7;
-  --color-surface-container-high: #ECE6F0;
-  --color-surface-container-highest: #E6E0E9;
-  --color-error: #B3261E;
+  --color-secondary-container: #FBDEBC;
+  --color-on-secondary-container: #56442A;
+  --color-tertiary: #51643F;
+  --color-surface: #FFF8F4;
+  --color-on-surface: #201B13;
+  --color-on-surface-variant: #4F4539;
+  --color-surface-container: #F9ECDF;
+  --color-surface-container-high: #F3E6DA;
+  --color-surface-container-highest: #EDE0D4;
+  --color-inverse-surface: #362F27;
+  --color-on-inverse-surface: #FCEFE2;
+  --color-error: #BA1A1A;
   --color-on-error: #FFFFFF;
-  --color-outline: #79747E;
-  --color-outline-variant: #CAC4D0;
+  --color-outline: #817567;
+  --color-outline-variant: #D3C4B4;
   --color-scrim: #000000;
   --color-primary-subtle: color-mix(in srgb, var(--color-primary) 12%, transparent);
   --color-error-subtle: color-mix(in srgb, var(--color-error) 10%, transparent);
@@ -108,7 +113,7 @@ button { font-family: var(--font-ui); }
 
 .day-nav { display: flex; align-items: center; gap: 8px; }
 .day-nav .date-block { flex: 1; text-align: center; min-width: 0; }
-.date-main { font-size: 1.25rem; font-weight: 700; }
+.date-main { font-family: var(--font-main); font-size: 1.35rem; font-weight: 700; }
 .date-sub { font-size: 0.85rem; color: var(--color-on-surface-variant); margin-top: 2px; }
 .holiday { color: var(--color-primary); font-weight: 600; }
 
@@ -212,7 +217,7 @@ tr.clickable:hover td { background: var(--color-primary-subtle); }
 
 .toast {
   position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-  background: var(--color-on-surface); color: var(--color-surface);
+  background: var(--color-inverse-surface); color: var(--color-on-inverse-surface);
   padding: 10px 18px; border-radius: var(--radius-md); font-size: 0.9rem; z-index: 30;
 }
 
