@@ -1,5 +1,5 @@
 {
-  "name": "otzaria-oraysa-plugin",
+  "name": "oraysa",
   "private": true,
   "description": "Otzaria plugin for the Oraysa Amud V'Chazara daily learning program",
   "scripts": {
