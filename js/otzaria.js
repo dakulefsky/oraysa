@@ -136,6 +136,54 @@
     return { ok: false, message: `לא ניתן לפתוח את ${C.shortLabel(a)}` };
   }
 
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /** המפרשים בטאב הקריאה הנוכחי: { available, active } או null. */
+  async function getCommentators() {
+    const r = await call('reader.getActiveCommentators');
+    return r && r.success && r.data ? r.data : null;
+  }
+
+  /** מתאים שמות מפרשים קצרים ("רש״י") לכותרות המלאות בטאב ("רש״י על ברכות"). */
+  function matchCommentators(wanted, available) {
+    const out = [];
+    for (const w of wanted) {
+      const key = C.normalize(w);
+      const hit = available.find((t) => C.normalize(t).startsWith(`${key} על`)) ||
+        available.find((t) => C.normalize(t) === key);
+      if (hit) out.push(hit);
+    }
+    return out;
+  }
+
+  /** מוסיף את המפרשים שנבחרו לטאב שזה עתה נפתח (ממתין לטעינת הטאב). */
+  async function applyCommentators(wanted) {
+    if (!HAS_OTZ) return null;
+    for (let i = 0; i < 12; i++) {
+      const st = await getCommentators();
+      if (st && st.available && st.available.length) {
+        const add = matchCommentators(wanted, st.available).filter((t) => !(st.active || []).includes(t));
+        if (!add.length) return st;
+        const r = await call('reader.setActiveCommentators', { add });
+        return (r && r.success && r.data) || st;
+      }
+      await sleep(250);
+    }
+    return null;
+  }
+
+  async function toggleCommentator(title, on) {
+    const r = await call('reader.setActiveCommentators', on ? { add: [title] } : { remove: [title] });
+    return r && r.success ? r.data : null;
+  }
+
+  /** פותח כתובת אינטרנט בדפדפן (באוצריא — באישור המשתמש). */
+  async function openUrl(url) {
+    if (!HAS_OTZ) { window.open(url, '_blank', 'noopener'); return true; }
+    const r = await call('app.openUrl', { url });
+    return !!(r && r.success && r.data);
+  }
+
   /** חגים ופרשה מאוצריא (null מחוץ לאוצריא או בכשל). */
   async function jewishDateInfo(iso) {
     const r = await call('calendar.getJewishDate', { date: iso });
@@ -148,5 +196,5 @@
     return !!(r && r.success);
   }
 
-  window.Otz = { HAS_OTZ, call, load, save, boot, openAmud, jewishDateInfo, notify };
+  window.Otz = { HAS_OTZ, call, load, save, boot, openAmud, jewishDateInfo, notify, openUrl, getCommentators, applyCommentators, toggleCommentator };
 })();

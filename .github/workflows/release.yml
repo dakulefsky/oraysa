@@ -36,7 +36,7 @@ jobs:
           publish: ${{ github.event.inputs.publish || 'false' }}
           otzaria-user: ${{ secrets.OTZARIA_USER }}
           otzaria-password: ${{ secrets.OTZARIA_PASSWORD }}
-          screenshots: 'screenshots/day.png,screenshots/month.png,screenshots/lookup.png'
+          screenshots: 'screenshots/day.png,screenshots/month.png,screenshots/bechinos.png'
 
       - uses: actions/upload-artifact@v4
         with:

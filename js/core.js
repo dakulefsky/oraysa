@@ -218,6 +218,59 @@
   /** ההפניה שהקורא של אוצריא מזהה בתוכן העניינים של הבבלי ("דף ב." / "דף סד:"). */
   const tocRef = (a) => `דף ${hebNum(a.daf)}${amudMark(a.amud)}`;
 
+
+  // ── משאבי אתר אורייתא ──
+  // מזהי המסכתות באתר oraysa.org (פרמטר masechta) ובאתר הבחינות moodle.oraysa.org.
+  const SITE_BOOK_IDS = {
+    'ברכות': 2, 'שבת': 127, 'עירובין': 439, 'פסחים': 646, 'ראש השנה': 809, 'יומא': 876,
+    'סוכה': 1049, 'ביצה': 1159, 'תענית': 1236, 'מגילה': 1295, 'מועד קטן': 1356, 'חגיגה': 1411,
+    'יבמות': 1462, 'קידושין': 2510,
+  };
+  const MOODLE_COURSE_IDS = {
+    'ברכות': 2, 'שבת': 3, 'עירובין': 4, 'פסחים': 5, 'ראש השנה': 8, 'יומא': 16, 'סוכה': 17,
+    'ביצה': 19, 'תענית': 22, 'מגילה': 20, 'מועד קטן': 24, 'חגיגה': 26, 'יבמות': 27,
+  };
+  const SITE = 'https://www.oraysa.org';
+  const SITE_BECHINOS = `${SITE}/en/lecturers/${encodeURIComponent('מבחני-אורייתא')}`;
+  const MOODLE = 'https://moodle.oraysa.org';
+
+  /** דף העמוד באתר אורייתא: מראי מקומות, סיכומים, צורת הדף, חידודים ושיעורים. */
+  function siteUrl(a) {
+    const id = a && SITE_BOOK_IDS[a.masechet];
+    if (!id) return `${SITE}/en`;
+    return `${SITE}/en?masechta=${id}&amud=${encodeURIComponent(amudMark(a.amud) + hebNum(a.daf))}`;
+  }
+  /** קורס הבחינות המקוונות של המסכת (או דף הבית של אתר הבחינות). */
+  function moodleUrl(name) {
+    const id = MOODLE_COURSE_IDS[name];
+    return id ? `${MOODLE}/course/view.php?id=${id}` : `${MOODLE}/`;
+  }
+  const hasSiteResources = (a) => !!(a && SITE_BOOK_IDS[a.masechet]);
+
+  /**
+   * הבחינה הדו-שבועית: ביום ראשון, על 5 הדפים (10 עמודים) של השבועיים שקדמו לו.
+   * parity (0/1) קובע באילו ימי ראשון חלה הבחינה (לפי מספר השבוע מתחילת התוכנית).
+   */
+  function isBechinaDay(dn, parity) {
+    if (dn < EPOCH || dowOf(dn) !== 0) return false;
+    const week = Math.floor((dn - EPOCH) / 7);
+    return week >= 2 && week % 2 === (parity ? 1 : 0);
+  }
+  function bechinaFor(dn) {
+    const end = weekStartIndex(dn) - 1;
+    const start = Math.max(0, end - 9);
+    if (end < 0) return null;
+    return { dn, from: amudAt(start), to: amudAt(Math.min(end, TOTAL - 1)), amudim: range(start, Math.min(end, TOTAL - 1)) };
+  }
+  function nextBechinaDays(fromDn, parity, count) {
+    const out = [];
+    let dn = fromDn + ((7 - dowOf(fromDn)) % 7);
+    for (let guard = 0; out.length < count && guard < 60; guard++, dn += 7) {
+      if (isBechinaDay(dn, parity)) out.push(dn);
+    }
+    return out;
+  }
+
   const DAY_NAMES = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'שבת קודש'];
   const DAY_LETTERS = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const GREG_MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -254,5 +307,6 @@
     amudAt, findMasechet, indexOf, dayOfIndex, learningIndexOn, weekStartIndex, dayPlan, masechetSpan,
     hebNum, shortLabel, longLabel, dafMark, tocRef, hebrewDate, gregText, normalize,
     DAY_NAMES, DAY_LETTERS, GREG_MONTHS,
+    siteUrl, moodleUrl, hasSiteResources, isBechinaDay, bechinaFor, nextBechinaDays, SITE, SITE_BECHINOS, MOODLE,
   };
 });

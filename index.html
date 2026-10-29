@@ -17,6 +17,7 @@
         <button class="nav-btn active" data-tab="day">היום</button>
         <button class="nav-btn" data-tab="month">לוח</button>
         <button class="nav-btn" data-tab="lookup">איתור עמוד</button>
+        <button class="nav-btn" data-tab="bechinos">בחינות</button>
         <button class="nav-btn" data-tab="progress">התקדמות</button>
       </nav>
       <div class="topbar-side topbar-end">
@@ -29,6 +30,7 @@
       <button class="nav-btn active" data-tab="day">היום</button>
       <button class="nav-btn" data-tab="month">לוח</button>
       <button class="nav-btn" data-tab="lookup">איתור</button>
+      <button class="nav-btn" data-tab="bechinos">בחינות</button>
       <button class="nav-btn" data-tab="progress">התקדמות</button>
     </nav>
     <main class="app-content" id="content"></main>
@@ -46,6 +48,17 @@
         <label class="switch-row"><input type="checkbox" data-setting="review30"> חזרה על כל עמוד 30 יום אחרי לימודו</label>
         <label class="switch-row"><input type="checkbox" data-setting="review90"> חזרה על כל עמוד 90 יום אחרי לימודו</label>
         <label class="switch-row"><input type="checkbox" data-setting="shabbos2w"> חזרה בשבת על לימוד השבועיים האחרונים</label>
+        <h3>מפרשים</h3>
+        <p class="muted">המפרשים שייפתחו לצד הגמרא בלחיצה על "פתח".</p>
+        <div id="mef-defaults"></div>
+        <h3>בחינות</h3>
+        <label class="switch-row">מועד הבחינה הדו-שבועית:
+          <select data-setting-select="bechinaParity" aria-label="מועד הבחינה">
+            <option value="0">ימי ראשון בשבועות זוגיים</option>
+            <option value="1">ימי ראשון בשבועות אי-זוגיים</option>
+          </select>
+        </label>
+        <p class="muted">אם מועד הבחינה בתוסף אינו תואם ללוח הבחינות של אורייתא — החליפו כאן.</p>
         <h3>על התוכנית</h3>
         <ul class="about">
           <li>ימים א׳–ה׳: עמוד חדש בכל יום, וחזרה על עמוד אתמול.</li>

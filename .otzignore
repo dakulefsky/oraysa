@@ -4,3 +4,4 @@ screenshots/
 README.md
 package.json
 .github/
+dist/

@@ -4,12 +4,13 @@
   const Otz = window.Otz;
 
   const state = {
-    tab: ['day', 'month', 'lookup', 'progress'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'day',
+    tab: ['day', 'month', 'lookup', 'bechinos', 'progress'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'day',
     today: C.todayDn(),
     viewDn: C.todayDn(),
     month: null, // {y, m}
     lookup: null, // {mi, daf, amud}
-    settings: { review30: false, review90: false, shabbos2w: false },
+    settings: { review30: false, review90: false, shabbos2w: false, bechinaParity: 1, meforshim: ['רש״י', 'תוספות'] },
+    mef: null, // מצב המפרשים בטאב הקריאה שנפתח אחרון: { idx, available, active }
     checks: {}, // key -> dn שבו סומן
   };
 
@@ -47,6 +48,8 @@
     }
     return min;
   }
+
+  const MEFORSHIM = ['רש״י', 'תוספות', 'רשב״א', 'ריטב״א', 'רמב״ן', 'ר״ן', 'מהרש״א', 'מהר״ם', 'פני יהושע', 'שטמ״ק'];
 
   // ── עזרי תצוגה ──
   const ICON_BOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2z"/><path d="M22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/></svg>';
@@ -105,6 +108,9 @@
         ${plan.extras.map((e) => `<div class="muted" style="margin-top:6px">${names[e.type]}</div>${assignmentRow(e.amud, `X:${e.type}:${e.amud.idx}`, 'חזרתי', 'סמן', true)}`).join('')}</div>`;
     }
 
+    const main = plan.learn || plan.weekly[0];
+    if (main) html += resourcesCard(main, plan.weekly);
+    if (C.isBechinaDay(dn, state.settings.bechinaParity)) html += bechinaCard(dn, true);
     const cur = plan.learn || plan.weekly[plan.weekly.length - 1];
     if (cur) html += masechetCard(cur);
     content.innerHTML = `<div class="view">${html}</div>`;
@@ -117,6 +123,73 @@
       if (info.parasha && C.dowOf(dn) === 6) parts.push(`פרשת ${info.parasha}`);
       el.textContent = parts.length ? `· ${parts.join(' · ')}` : '';
     });
+  }
+
+  function resourcesCard(a, weekly) {
+    const mefState = state.mef && state.mef.available && state.mef.available.length ? state.mef : null;
+    const mefChips = mefState
+      ? mefState.available.map((t) => `<button class="chip-btn${mefState.active.includes(t) ? ' on' : ''}" data-mef-toggle="${esc(t)}">${esc(t)}</button>`).join('')
+      : state.settings.meforshim.map((m) => `<span class="chip">${esc(m)}</span>`).join(' ');
+    const others = (weekly || []).filter((w) => w.idx !== a.idx);
+    const siteBtn = (x) => `<button class="btn btn-outline" data-url="${esc(C.siteUrl(x))}">${C.hasSiteResources(x) ? '' : ''}${esc(C.shortLabel(x))}</button>`;
+    return `<div class="card"><div class="card-title">מפרשים וחומרי עזר</div>
+      <div class="res-row">
+        <div class="res-head">מפרשים באוצריא</div>
+        <div class="chips">${mefChips}</div>
+        <div class="actions"><button class="btn btn-tonal" data-open="${a.idx}">${ICON_BOOK} פתח את ${esc(C.shortLabel(a))} עם המפרשים</button></div>
+        <p class="muted">${mefState ? 'לחצו על מפרש כדי להוסיף או להסיר אותו מהטאב הפתוח.' : 'בחירת המפרשים — בהגדרות. אחרי הפתיחה יוצגו כאן כל המפרשים הזמינים.'}</p>
+      </div>
+      <div class="res-row">
+        <div class="res-head">מאתר אורייתא</div>
+        <p class="muted">מראי מקומות (פתגמי אורייתא), סיכומי אורייתא (שאלות ותשובות), צורת הדף עם פירוש, חידודי אורייתא (חידון יומי), זכרו, ושיעורי וידאו ואודיו.</p>
+        <div class="actions wrap">
+          <button class="btn btn-primary" data-url="${esc(C.siteUrl(a))}">חומרי העזר ל${esc(C.shortLabel(a))}</button>
+          ${others.map(siteBtn).join('')}
+        </div>
+        ${C.hasSiteResources(a) ? '' : '<p class="muted">לעמוד זה אין עדיין קישור ישיר בתוסף — ייפתח דף הבית של אורייתא.</p>'}
+      </div>
+    </div>`;
+  }
+
+  function bechinaCard(dn, compact) {
+    const b = C.bechinaFor(dn);
+    if (!b) return '';
+    const key = `B:${dn}`;
+    const done = isDone(key);
+    const m = b.to.masechet;
+    const h = C.hebrewDate(dn);
+    return `<div class="card${compact ? ' primary' : ''}"><div class="card-title">${compact ? 'היום: בחינה דו-שבועית' : esc(`${C.DAY_NAMES[0]}, ${h ? h.text : ''}`)}
+        ${dn === state.today ? '<span class="chip">היום</span>' : dn < state.today ? '' : `<span class="chip">בעוד ${dn - state.today} ימים</span>`}</div>
+      <div class="amud-label small">${esc(C.shortLabel(b.from))} – ${esc(C.shortLabel(b.to))}</div>
+      <p class="muted">${b.amudim.length / 2} דפים · <span class="ltr">${C.gregText(dn)}</span> · יש להגיש עד 11 בלילה, בגמרא סגורה, תוך שעה וחצי.</p>
+      <div class="actions wrap">
+        <button class="btn btn-tonal" data-open="${b.from.idx}">${ICON_BOOK} חזרה מ${esc(C.dafMark(b.from))}</button>
+        <button class="btn btn-primary" data-url="${esc(C.moodleUrl(m))}">בחינה מקוונת</button>
+        <button class="btn btn-outline" data-url="${esc(C.SITE_BECHINOS)}">טופסי הבחינות (PDF)</button>
+        <button class="btn check${done ? ' done' : ''}" data-toggle="${key}">${ICON_CHECK} ${done ? 'נבחנתי' : 'סמן שנבחנתי'}</button>
+      </div>
+    </div>`;
+  }
+
+  function renderBechinos() {
+    const parity = state.settings.bechinaParity;
+    const upcoming = C.nextBechinaDays(state.today, parity, 6);
+    const past = [];
+    for (let dn = state.today - 1; past.length < 4 && dn > state.today - 70; dn--) if (C.isBechinaDay(dn, parity)) past.push(dn);
+    content.innerHTML = `<div class="view">
+      <div class="card"><div class="card-title">מבחני אורייתא</div>
+        <p class="muted">בכל יום ראשון שני נערכת בחינה על 5 הדפים שנלמדו בשבועיים שקדמו לה. אפשר להיבחן באתר הבחינות המקוון, או להדפיס את הטופס ולשלוח את דף התשובות. המשתתפים בתוכנית המלגות נדרשים לשתי הבחינות בחודש.</p>
+        <div class="actions wrap">
+          <button class="btn btn-primary" data-url="${esc(C.MOODLE)}/">אתר הבחינות</button>
+          <button class="btn btn-outline" data-url="${esc(C.SITE_BECHINOS)}">טופסי הבחינות (PDF)</button>
+          <button class="btn btn-outline" data-url="${esc(C.SITE)}/en/faqs">שאלות נפוצות</button>
+        </div>
+        <p class="muted">מועד הבחינות מחושב בתוסף; אם אינו תואם ללוח של אורייתא — החליפו בהגדרות.</p>
+      </div>
+      <h3 class="section-title">הבחינות הקרובות</h3>
+      ${upcoming.map((dn) => bechinaCard(dn, false)).join('')}
+      ${past.length ? `<h3 class="section-title">בחינות קודמות</h3>${past.map((dn) => bechinaCard(dn, false)).join('')}` : ''}
+    </div>`;
   }
 
   function masechetCard(a) {
@@ -290,7 +363,7 @@
     document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === state.tab));
     const t = C.learningIndexOn(state.today);
     $('#topbar-sub').textContent = t != null ? `היום: ${C.shortLabel(C.amudAt(t))}` : 'היום: חזרה שבועית';
-    ({ day: renderDay, month: renderMonth, lookup: renderLookup, progress: renderProgress })[state.tab]();
+    ({ day: renderDay, month: renderMonth, lookup: renderLookup, bechinos: renderBechinos, progress: renderProgress })[state.tab]();
   }
 
   function toast(msg) {
@@ -301,9 +374,29 @@
     toast.t = setTimeout(() => { el.hidden = true; }, 3500);
   }
 
+  async function say(msg, kind) {
+    if (!(await Otz.notify(msg, kind))) toast(msg);
+  }
+
   async function openIdx(idx) {
     const r = await Otz.openAmud(C.amudAt(idx));
-    if (r.message) { if (!(await Otz.notify(r.message, r.ok ? 'info' : 'error'))) toast(r.message); }
+    if (r.message) say(r.message, r.ok ? 'info' : 'error');
+    if (!r.ok) return;
+    const st = await Otz.applyCommentators(state.settings.meforshim);
+    if (st) { state.mef = { idx, available: st.available || [], active: st.active || [] }; if (state.tab === 'day') render(); }
+  }
+
+  async function toggleMef(title) {
+    if (!state.mef) return;
+    const on = !state.mef.active.includes(title);
+    const st = await Otz.toggleCommentator(title, on);
+    if (st) { state.mef.available = st.available || state.mef.available; state.mef.active = st.active || []; }
+    else say('אין טאב גמרא פתוח — לחצו "פתח" שוב', 'error');
+    render();
+  }
+
+  function renderMefDefaults() {
+    $('#mef-defaults').innerHTML = MEFORSHIM.map((m) => `<label class="switch-row"><input type="checkbox" data-mef-default="${esc(m)}"${state.settings.meforshim.includes(m) ? ' checked' : ''}> ${esc(m)}</label>`).join('');
   }
 
   document.addEventListener('click', (ev) => {
@@ -313,6 +406,8 @@
     if (d.tab) { state.tab = d.tab; render(); content.scrollTop = 0; }
     else if (d.toggle) toggle(d.toggle);
     else if (d.open) openIdx(parseInt(d.open, 10));
+    else if (d.url) Otz.openUrl(d.url);
+    else if (d.mefToggle) toggleMef(d.mefToggle);
     else if (d.day) { state.viewDn += parseInt(d.day, 10); render(); }
     else if (d.gotoToday !== undefined) { state.viewDn = state.today; render(); }
     else if (d.pick) { state.viewDn = parseInt(d.pick, 10); state.tab = 'day'; state.month = null; render(); content.scrollTop = 0; }
@@ -329,7 +424,18 @@
     if (t.id === 'lk-m') { state.lookup = { mi: parseInt(t.value, 10), daf: 0, amud: 0 }; render(); }
     else if (t.id === 'lk-d') { state.lookup.daf = parseInt(t.value, 10); render(); }
     else if (t.id === 'lk-a') { state.lookup.amud = parseInt(t.value, 10); render(); }
-    else if (t.dataset.setting) {
+    else if (t.dataset.mefDefault) {
+      const name = t.dataset.mefDefault;
+      const set = state.settings.meforshim.filter((m) => m !== name);
+      if (t.checked) set.push(name);
+      state.settings.meforshim = MEFORSHIM.filter((m) => set.includes(m));
+      Otz.save('settings', state.settings);
+      render();
+    } else if (t.dataset.settingSelect) {
+      state.settings[t.dataset.settingSelect] = parseInt(t.value, 10);
+      Otz.save('settings', state.settings);
+      render();
+    } else if (t.dataset.setting) {
       state.settings[t.dataset.setting] = t.checked;
       Otz.save('settings', state.settings);
       render();
@@ -346,6 +452,8 @@
 
   $('#btn-settings').addEventListener('click', () => {
     document.querySelectorAll('[data-setting]').forEach((i) => { i.checked = !!state.settings[i.dataset.setting]; });
+    document.querySelectorAll('[data-setting-select]').forEach((i) => { i.value = String(state.settings[i.dataset.settingSelect] ?? 1); });
+    renderMefDefaults();
     $('#settings').hidden = false;
   });
   $('#btn-settings-close').addEventListener('click', () => { $('#settings').hidden = true; });

@@ -94,3 +94,25 @@ test('projection flag', () => {
   assert.equal(C.amudAt(C.findMasechet('כתובות').endIdx).projected, false);
   assert.equal(C.amudAt(C.findMasechet('נדרים').startIdx).projected, true);
 });
+
+test('oraysa.org resource links', () => {
+  const a = C.amudAt(C.indexOf(C.findMasechet('יבמות'), 122, 1));
+  assert.equal(C.siteUrl(a), `https://www.oraysa.org/en?masechta=1462&amud=${encodeURIComponent(':קכב')}`);
+  const b = C.amudAt(C.indexOf(C.findMasechet('יבמות'), 10, 0));
+  assert.equal(decodeURIComponent(C.siteUrl(b).split('amud=')[1]), '.י');
+  assert.equal(C.hasSiteResources(C.amudAt(C.findMasechet('נדרים').startIdx)), false);
+  assert.equal(C.siteUrl(C.amudAt(C.findMasechet('נדרים').startIdx)), 'https://www.oraysa.org/en');
+  assert.equal(C.moodleUrl('יבמות'), 'https://moodle.oraysa.org/course/view.php?id=27');
+});
+
+test('bi-weekly bechina covers the previous two weeks (official Pesachim #4A, 2.10.2022)', () => {
+  const dn = C.dayNum(2022, 10, 2);
+  assert.equal(C.isBechinaDay(dn, 1), true);
+  assert.equal(C.isBechinaDay(dn + 7, 1), false);
+  assert.equal(C.isBechinaDay(dn, 0), false);
+  const b = C.bechinaFor(dn);
+  assert.equal(C.shortLabel(b.from), 'פסחים לב:');
+  assert.equal(C.shortLabel(b.to), 'פסחים לז.');
+  assert.equal(b.amudim.length, 10);
+  assert.deepEqual(C.nextBechinaDays(dn - 3, 1, 2), [dn, dn + 14]);
+});
