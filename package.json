@@ -1,0 +1,9 @@
+{
+  "name": "otzaria-oraysa-plugin",
+  "private": true,
+  "description": "Otzaria plugin for the Oraysa Amud V'Chazara daily learning program",
+  "scripts": {
+    "test": "node --test tests/",
+    "validate": "npx --yes github:Otzaria/otzaria-plugin-validator#v1 . --publish false"
+  }
+}

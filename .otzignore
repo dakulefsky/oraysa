@@ -1,0 +1,6 @@
+tests/
+tools/
+screenshots/
+README.md
+package.json
+.github/

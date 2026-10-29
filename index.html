@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>אורייתא יומי</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-side">
+        <h1>אורייתא יומי</h1>
+        <span class="topbar-sub" id="topbar-sub"></span>
+      </div>
+      <nav class="topbar-nav" id="nav">
+        <button class="nav-btn active" data-tab="day">היום</button>
+        <button class="nav-btn" data-tab="month">לוח</button>
+        <button class="nav-btn" data-tab="lookup">איתור עמוד</button>
+        <button class="nav-btn" data-tab="progress">התקדמות</button>
+      </nav>
+      <div class="topbar-side topbar-end">
+        <button class="topbar-btn" id="btn-settings" title="הגדרות" aria-label="הגדרות">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+    </header>
+    <nav class="bottom-nav" id="nav-compact">
+      <button class="nav-btn active" data-tab="day">היום</button>
+      <button class="nav-btn" data-tab="month">לוח</button>
+      <button class="nav-btn" data-tab="lookup">איתור</button>
+      <button class="nav-btn" data-tab="progress">התקדמות</button>
+    </nav>
+    <main class="app-content" id="content"></main>
+  </div>
+
+  <div class="scrim" id="settings" hidden>
+    <div class="panel" role="dialog" aria-labelledby="settings-title">
+      <div class="panel-head">
+        <h2 id="settings-title">הגדרות</h2>
+        <button class="icon-btn" id="btn-settings-close" aria-label="סגירה">✕</button>
+      </div>
+      <div class="panel-body">
+        <h3>חזרות רשות</h3>
+        <p class="muted">בנוסף לסדר הקבוע — כמו ב"לוח האישי" באתר אורייתא.</p>
+        <label class="switch-row"><input type="checkbox" data-setting="review30"> חזרה על כל עמוד 30 יום אחרי לימודו</label>
+        <label class="switch-row"><input type="checkbox" data-setting="review90"> חזרה על כל עמוד 90 יום אחרי לימודו</label>
+        <label class="switch-row"><input type="checkbox" data-setting="shabbos2w"> חזרה בשבת על לימוד השבועיים האחרונים</label>
+        <h3>על התוכנית</h3>
+        <ul class="about">
+          <li>ימים א׳–ה׳: עמוד חדש בכל יום, וחזרה על עמוד אתמול.</li>
+          <li>יום שישי: חזרה על עמודי ימים א׳–ב׳; שבת: חזרה על עמודי ימים ג׳–ה׳.</li>
+          <li>הלוח רציף — אין דילוג על חגים.</li>
+        </ul>
+        <p class="muted">הלוח מחושב בתוסף לפי כללי התוכנית ונבדק מול הלוחות שפרסמה אורייתא. תאריכים אחרי מסכת כתובות הם הערכה לפי סדר הש״ס. אין זה תוסף רשמי של אורייתא — מידע, שיעורים ומבחנים באתר <span class="ltr">oraysa.org</span>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="js/core.js"></script>
+  <script src="js/otzaria.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

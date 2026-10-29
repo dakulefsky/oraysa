@@ -1,0 +1,79 @@
+name: Test, validate & package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to the Otzaria store? (auto/true/false)'
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Test schedule engine
+        run: npm test
+
+      # Official Otzaria action: validates, packages the .otzplugin and (optionally) publishes.
+      - name: Validate & package
+        id: otzaria
+        uses: Otzaria/otzaria-plugin-validator@v1
+        with:
+          path: .
+          build: true
+          publish: ${{ github.event.inputs.publish || 'false' }}
+          otzaria-user: ${{ secrets.OTZARIA_USER }}
+          otzaria-password: ${{ secrets.OTZARIA_PASSWORD }}
+          screenshots: 'screenshots/day.png,screenshots/month.png,screenshots/lookup.png'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otzplugin
+          path: ${{ steps.otzaria.outputs.plugin-file }}
+
+      - name: Determine version
+        if: github.event_name != 'pull_request'
+        id: meta
+        run: echo "tag=v$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check for existing release
+        if: github.event_name != 'pull_request'
+        id: release_check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        if: github.event_name != 'pull_request' && steps.release_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.tag }}
+          generate_release_notes: true
+          files: ${{ steps.otzaria.outputs.plugin-file }}
+          body: |
+            ## אורייתא יומי — ${{ steps.meta.outputs.tag }}
+
+            ### התקנה
+            הורידו את קובץ ה-`.otzplugin` למטה, ובאוצריא:
+            **כלים → תוספים → התקן תוסף חדש**, ובחרו את הקובץ.
+
+            SHA-256: `${{ steps.otzaria.outputs.sha256 }}`

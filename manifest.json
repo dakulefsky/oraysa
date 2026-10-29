@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "com.dakulefsky.oraysa-daily",
+  "name": "אורייתא יומי",
+  "version": "1.0.0",
+  "sdkVersion": "1.x",
+  "description": "לוח תוכנית אורייתא — עמוד וחזרה: העמוד והחזרה של היום, חזרת שישי-שבת, לוח חודשי, איתור תאריך לכל עמוד ומעקב התקדמות.",
+  "author": "dakulefsky",
+  "homepage": "https://github.com/dakulefsky/otzaria-oraysa-plugin",
+  "stability": "beta",
+  "minAppVersion": "0.9.97",
+  "entrypoint": "index.html",
+  "icon": "icon/icon.png",
+  "network": {
+    "enabled": false,
+    "allowlist": []
+  },
+  "permissions": [
+    "library.books.read",
+    "library.content.read",
+    "reader.open",
+    "calendar.read"
+  ],
+  "contributes": {
+    "toolTab": {
+      "title": "אורייתא יומי",
+      "order": 320,
+      "allowOrderBeforeBuiltIns": false,
+      "defaultPinned": true,
+      "iconName": "book_open_tzurat_hadaf_24_regular"
+    }
+  }
+}
