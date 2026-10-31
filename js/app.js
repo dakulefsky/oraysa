@@ -424,11 +424,13 @@
     if (!input || !input.value) { resourceStatus = ResourceSync.snapshot(); say('בחרו תאריך קודם.', 'error'); render(); return; }
     const result = await ResourceSync.syncDate(input.value);
     resourceStatus = ResourceSync.snapshot();
-    if (result.ok) say(result.result && result.result.downloaded
-      ? result.result.downloaded + ' קבצים חדשים נשמרו.'
-      : (result.result && result.result.resources && !result.result.resources.length
-        ? 'לא נמצאו כרגע קובצי PDF בעמוד הזה.'
-        : 'הבדיקה הסתיימה.'));
+    if (result.ok) say(result.downloaded
+      ? result.downloaded + ' קבצים חדשים נשמרו.'
+      : (result.results && result.results.length && result.results.every((r) => !r.error && !r.resources.length)
+        ? 'לא נמצאו כרגע קובצי PDF בעמודים שנבדקו.'
+        : (result.results && result.results.some((r) => r.error)
+          ? 'הבדיקה הסתיימה עם שגיאה בחלק מהעמודים.'
+          : 'לא נמצאו קבצים חדשים; הקבצים הקיימים נשמרו.')));
     else say(result.message || 'לא ניתן להוריד את המשאבים.', 'error');
     render();
   }
