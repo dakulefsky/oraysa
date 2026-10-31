@@ -37,3 +37,11 @@ test('uses the verified Yevamos assignment for the week of 2026-10-25', () => {
 test('fails closed when a weekly Oraysa assignment has not been verified', () => {
   assert.equal(getWeeklyAmudim(core, core.parseIso('2026-11-01')), null);
 });
+
+test('accepts the exact official Yevamos 122b Marei Mekomos PDF', () => {
+  const url = 'https://oraysa-media.s3.amazonaws.com/oraysa/Yevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf';
+  const found = parsePdfLinks('<a href="' + url + '">קובץ מראי מקומות</a>', 'https://www.oraysa.org/en?amud=%3A%D7%A7%D7%9B%D7%91&masechta=1462');
+  assert.equal(found.length, 1);
+  assert.equal(found[0].url, url);
+  assert.equal(found[0].filename, 'Yevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf');
+});
