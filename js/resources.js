@@ -110,15 +110,49 @@
       const section = archiveDate ? 'Archive/' + archiveDate : 'Current/' + weekLabel(core, weekStart(core, core.todayDn()));
       return rootPath + '/Oraysa/' + section + '/' + safeName(amudSlug(core, amud) + '__' + resource.filename);
     }
+    async function remoteMetadata(url) {
+      try {
+        const stream = await call('network.fetchStream', { url: url, method: 'HEAD', timeoutMs: 20000 });
+        if (!stream || typeof stream[Symbol.asyncIterator] !== 'function') return null;
+        for await (const part of stream) {
+          if (part.type === 'response') {
+            if (!part.ok) return null;
+            const h = part.headers || {};
+            return {
+              etag: h.etag || h.ETag || '',
+              modified: h['last-modified'] || h['Last-Modified'] || '',
+              size: h['content-length'] || h['Content-Length'] || ''
+            };
+          }
+        }
+      } catch (_) { /* HEAD is an optimization; never delete a saved file on failure. */ }
+      return null;
+    }
     async function download(amud, resource, archiveDate) {
-      if (state.downloaded[resource.url]) return { skipped: true };
-      const destPath = destination(amud, resource, archiveDate);
-      const r = await call('network.download', { url: resource.url, filename: safeName(resource.filename), destPath: destPath, resume: true });
+      const previous = state.downloaded[resource.url];
+      let metadata = null;
+      if (previous) {
+        metadata = await remoteMetadata(resource.url);
+        if (!metadata || (!metadata.etag && !metadata.modified && !metadata.size)) return { skipped: true };
+        if (metadata.etag === (previous.etag || '') &&
+            metadata.modified === (previous.modified || '') &&
+            metadata.size === (previous.size || '')) return { skipped: true };
+      } else {
+        metadata = await remoteMetadata(resource.url);
+      }
+      const destPath = previous && previous.path || destination(amud, resource, archiveDate);
+      const r = await call('network.download', {
+        url: resource.url, filename: safeName(resource.filename), destPath: destPath,
+        resume: !previous
+      });
       if (!r || !r.success) throw new Error(r && r.error && (r.error.message || r.error.code) || 'ההורדה נכשלה.');
-      state.downloaded[resource.url] = { filename: resource.filename, path: destPath,
-        downloadedAt: new Date().toISOString(), amud: core.shortLabel(amud) };
+      state.downloaded[resource.url] = {
+        filename: resource.filename, path: destPath, downloadedAt: new Date().toISOString(),
+        amud: core.shortLabel(amud), etag: metadata && metadata.etag || '',
+        modified: metadata && metadata.modified || '', size: metadata && metadata.size || ''
+      };
       await persist();
-      return { downloaded: true };
+      return { downloaded: true, updated: !!previous };
     }
     async function syncAmud(amud, archiveDate) {
       const result = await discover(amud);
