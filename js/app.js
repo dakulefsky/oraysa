@@ -417,8 +417,11 @@
     render();
   }
   async function syncPreviousDate() {
+    if (!resourceStatus.configured) { await setupResourceFolder(); return; }
+    resourceStatus.busy = true;
+    if (state.tab === 'resources') render();
     const input = $('#resource-date');
-    if (!input || !input.value) { say('בחרו תאריך קודם.', 'error'); return; }
+    if (!input || !input.value) { resourceStatus = ResourceSync.snapshot(); say('בחרו תאריך קודם.', 'error'); render(); return; }
     const result = await ResourceSync.syncDate(input.value);
     resourceStatus = ResourceSync.snapshot();
     if (result.ok) say(result.result && result.result.downloaded
@@ -554,5 +557,22 @@
         if (state.tab === 'resources') render();
       }).catch(() => {});
     }
+  });
+
+  // If the plugin stays open, re-check newly published PDFs every six hours.
+  setInterval(() => {
+    if (!resourceStatus.configured) return;
+    ResourceSync.autoSync().then(() => {
+      resourceStatus = ResourceSync.snapshot();
+      if (state.tab === 'resources') render();
+    }).catch(() => {});
+  }, 6 * 60 * 60 * 1000);
+
+  window.addEventListener('online', () => {
+    if (!resourceStatus.configured) return;
+    ResourceSync.autoSync().then(() => {
+      resourceStatus = ResourceSync.snapshot();
+      if (state.tab === 'resources') render();
+    }).catch(() => {});
   });
 })();
