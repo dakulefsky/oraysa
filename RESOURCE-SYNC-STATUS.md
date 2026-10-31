@@ -21,11 +21,9 @@ The Otzaria maintainer allowlist is separate from the plugin manifest. These two
 
 Without that upstream allowlist approval, Otzaria will reject the requests even though the plugin declares them.
 
-## Additional coverage blocker discovered (2026-10-31)
+## Schedule source must match Oraysa's live program (2026-10-31)
 
-The plugin's own calendar calculation places the current week in Bava Basra. However, `SITE_BOOK_IDS` currently contains IDs only through the early masechtos (including Yevamos and Kiddushin) and does not contain Bava Basra or most of Shas. As a result, the current-week sync cannot fetch the current Oraysa resource page; `hasSiteResources()` correctly marks those amudim unavailable instead of guessing a URL.
-
-Do not release weekly sync until the official Oraysa masechta identifiers / resource-page lookup mechanism has been verified for the complete schedule. The current map is not a complete catalog.
+Correction: the user confirms that the actual current Oraysa week is Yevamos, not Bava Basra. Yevamos is already present in `SITE_BOOK_IDS` (ID 1462), and the supplied official Yevamos 120b–122b PDF is a concrete test fixture. Do not treat the plugin's projected linear calendar as authoritative for Oraysa's live weekly assignment. Before release, verify that the five amudim selected for weekly sync match Oraysa's actual current schedule; if the app calendar disagrees, the sync must use a verified Oraysa schedule source or a corrected schedule mapping rather than silently fetching the wrong masechta.
 
 ## Catalog discovery verification still required
 
