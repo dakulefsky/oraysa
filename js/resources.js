@@ -192,15 +192,23 @@
       if (!state.folder) return { ok: false, needsFolder: true, message: 'בחרו תיקייה לשמירת חומרי אורייתא.' };
       const dn = core.parseIso(isoDate);
       if (dn == null || dn >= core.todayDn()) return { ok: false, message: 'בחרו יום לימוד קודם.' };
-      const idx = core.learningIndexOn(dn);
-      if (idx == null) return { ok: false, message: 'בתאריך הזה אין עמוד חדש בתוכנית (שישי/שבת או מחוץ ללוח).' };
+      const plan = core.dayPlan(dn);
+      let amudim = [];
+      if (plan.kind === 'learn') amudim = [plan.review, plan.learn].filter(Boolean);
+      else if (plan.kind === 'friday' || plan.kind === 'shabbos') amudim = plan.weekly || [];
+      if (!amudim.length) return { ok: false, message: 'לא נמצאו עמודי לימוד לתאריך הזה.' };
       busy = true;
       try {
         if (!(await online())) throw new Error('אין כרגע חיבור לאינטרנט.');
-        const amud = core.amudAt(idx), result = await syncAmud(amud, isoDate);
-        state.lastMessage = result.error || result.downloaded + ' קבצים חדשים לעמוד ' + core.shortLabel(amud) + '.';
+        const results = [];
+        for (const amud of amudim) {
+          try { results.push(await syncAmud(amud, isoDate)); }
+          catch (e) { results.push({ amud: amud, error: e.message, resources: [], downloaded: 0, skipped: 0 }); }
+        }
+        const total = results.reduce((n, r) => n + (r.downloaded || 0), 0);
+        state.lastMessage = total + ' קבצים חדשים נשמרו עבור ' + core.DAY_NAMES[plan.dow] + '.';
         await persist();
-        return { ok: true, result: result, state: snapshot() };
+        return { ok: true, results: results, downloaded: total, state: snapshot() };
       } finally { busy = false; }
     }
     async function autoSync() {
