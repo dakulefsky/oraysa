@@ -34,3 +34,12 @@ Before release, run the plugin inside Otzaria with network access approved and v
 ## Storage model
 
 The user chooses a persistent folder once through `fs.pickUserFolder`. Downloads use `network.download` with a destination path inside that approved folder. The plugin keeps a URL-to-file metadata index in Otzaria plugin storage.
+
+
+## Verified Yevamos week correction (2026-10-31)
+
+The official Oraysa printable calendar identifies the Yevamos calendar period as running through Thursday, October 29, 2026. The user's supplied official S3 resource is titled *Yevamos 120b–122b Pisgamei Oraysa – Marei Mekomos*, and the user confirms this is the current Yevamos week. The resource sync now uses the five-amud assignment 120b, 121a, 121b, 122a, 122b for the week beginning 2026-10-25.
+
+The old projected linear calendar selected a different five-amud window and could cross into Kiddushin. The downloader now fails closed for any week without a verified schedule entry instead of silently downloading the projected assignment. Add each future week only after checking Oraysa's published calendar/current schedule. This is intentionally safer than guessing.
+
+Official calendar: https://dev.oraysa.org/_files/ugd/4323da_75e996c05d904bfca2643c55d3a1e82b.pdf
