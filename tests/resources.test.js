@@ -22,9 +22,8 @@ test('deduplicates links and accepts escaped S3 URLs', () => {
   assert.equal(parsePdfLinks(html, 'https://www.oraysa.org/en').length, 1);
 });
 
-require('../js/core.js');
+const core = require('../js/core.js');
 const { weeklyAmudim: getWeeklyAmudim } = global.OraysaResources;
-const core = global.OraysaCore;
 
 test('uses the verified Yevamos assignment for the week of 2026-10-25', () => {
   const start = core.parseIso('2026-10-25');
