@@ -21,3 +21,20 @@ test('deduplicates links and accepts escaped S3 URLs', () => {
   const html = '<a href="' + url + '">one</a><a href="' + url + '">two</a>';
   assert.equal(parsePdfLinks(html, 'https://www.oraysa.org/en').length, 1);
 });
+
+require('../js/core.js');
+const { weeklyAmudim: getWeeklyAmudim } = global.OraysaResources;
+const core = global.OraysaCore;
+
+test('uses the verified Yevamos assignment for the week of 2026-10-25', () => {
+  const start = core.parseIso('2026-10-25');
+  const amudim = getWeeklyAmudim(core, start);
+  assert.deepEqual(amudim.map((a) => [a.masechet, a.daf, a.amud]), [
+    ['יבמות', 120, 1], ['יבמות', 121, 0], ['יבמות', 121, 1],
+    ['יבמות', 122, 0], ['יבמות', 122, 1]
+  ]);
+});
+
+test('fails closed when a weekly Oraysa assignment has not been verified', () => {
+  assert.equal(getWeeklyAmudim(core, core.parseIso('2026-11-01')), null);
+});
