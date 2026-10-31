@@ -45,13 +45,12 @@
   }
   function weekStart(core, dn) { return dn - core.dowOf(dn); }
 
-  // Verified Oraysa assignment for the week ending 2026-10-29.
-  // The user confirmed this is the Yevamos week; the official Oraysa calendar
-  // identifies Oct 25-29, 2026 as the final scheduled week of Yevamos, and the
-  // supplied official S3 PDF covers Yevamos 120b-122b (five amudim).
-  // Fail closed for other weeks until their official schedule is verified.
+  // Verified Oraysa assignments. The first week is the final Yevamos week
+  // (120b-122b); the next week begins Kiddushin 2a on 2026-11-01, as recorded
+  // in the checked Oraysa calendar anchors in core.js. Fail closed otherwise.
   const VERIFIED_WEEKLY_ASSIGNMENTS = {
-    '2026-10-25': { masechet: 'יבמות', firstDaf: 120, firstAmud: 1, count: 5 }
+    '2026-10-25': { masechet: 'יבמות', firstDaf: 120, firstAmud: 1, count: 5 },
+    '2026-11-01': { masechet: 'קידושין', firstDaf: 2, firstAmud: 0, count: 5 }
   };
   function weeklyAmudim(core, weekStartDn) {
     const key = core.isoOf(weekStartDn);
