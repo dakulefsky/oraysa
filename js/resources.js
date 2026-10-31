@@ -193,11 +193,14 @@
       busy = true;
       try {
         if (!(await online())) throw new Error('אין כרגע חיבור לאינטרנט.');
-        const today = core.todayDn(), start = weekStart(core, today), startIdx = core.weekStartIndex(today);
+        const today = core.todayDn(), start = weekStart(core, today);
+        const scheduledAmudim = weeklyAmudim(core, start);
+        if (!scheduledAmudim) {
+          return { ok: false, scheduleUnverified: true,
+            message: 'לוח אורייתא לשבוע זה עדיין לא אומת. לא הורדו קבצים כדי למנוע הורדת חומר למסכת או לעמודים שגויים.' };
+        }
         const results = [];
-        for (let offset = 0; offset < 5; offset++) {
-          const amud = core.amudAt(startIdx + offset);
-          if (!amud) continue;
+        for (const amud of scheduledAmudim) {
           try { results.push(await syncAmud(amud, null)); }
           catch (e) { results.push({ amud: amud, error: e.message, resources: [], downloaded: 0, skipped: 0 }); }
         }
