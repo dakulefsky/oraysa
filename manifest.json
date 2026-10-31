@@ -8,7 +8,7 @@
   "author": "dakulefsky",
   "homepage": "https://github.com/dakulefsky/oraysa",
   "stability": "beta",
-  "minAppVersion": "0.9.97",
+  "minAppVersion": "0.9.98",
   "entrypoint": "index.html",
   "icon": "icon/icon.png",
   "network": {
