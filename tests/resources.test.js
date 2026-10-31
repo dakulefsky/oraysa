@@ -34,8 +34,17 @@ test('uses the verified Yevamos assignment for the week of 2026-10-25', () => {
   ]);
 });
 
+test('uses the verified Kiddushin assignment for the week of 2026-11-01', () => {
+  const start = core.parseIso('2026-11-01');
+  const amudim = getWeeklyAmudim(core, start);
+  assert.deepEqual(amudim.map((a) => [a.masechet, a.daf, a.amud]), [
+    ['קידושין', 2, 0], ['קידושין', 2, 1], ['קידושין', 3, 0],
+    ['קידושין', 3, 1], ['קידושין', 4, 0]
+  ]);
+});
+
 test('fails closed when a weekly Oraysa assignment has not been verified', () => {
-  assert.equal(getWeeklyAmudim(core, core.parseIso('2026-11-01')), null);
+  assert.equal(getWeeklyAmudim(core, core.parseIso('2026-11-08')), null);
 });
 
 test('accepts the exact official Yevamos 122b Marei Mekomos PDF', () => {
