@@ -44,6 +44,29 @@
     return Array.from(found.values());
   }
   function weekStart(core, dn) { return dn - core.dowOf(dn); }
+
+  // Verified Oraysa assignment for the week ending 2026-10-29.
+  // The user confirmed this is the Yevamos week; the official Oraysa calendar
+  // identifies Oct 25-29, 2026 as the final scheduled week of Yevamos, and the
+  // supplied official S3 PDF covers Yevamos 120b-122b (five amudim).
+  // Fail closed for other weeks until their official schedule is verified.
+  const VERIFIED_WEEKLY_ASSIGNMENTS = {
+    '2026-10-25': { masechet: 'יבמות', firstDaf: 120, firstAmud: 1, count: 5 }
+  };
+  function weeklyAmudim(core, weekStartDn) {
+    const key = core.isoOf(weekStartDn);
+    const assignment = VERIFIED_WEEKLY_ASSIGNMENTS[key];
+    if (!assignment) return null;
+    const first = core.indexOf(assignment.masechet, assignment.firstDaf, assignment.firstAmud);
+    if (first < 0) return null;
+    const amudim = [];
+    for (let i = 0; i < assignment.count; i++) {
+      const amud = core.amudAt(first + i);
+      if (!amud || amud.masechet !== assignment.masechet) return null;
+      amudim.push(amud);
+    }
+    return amudim;
+  }
   function weekLabel(core, dn) {
     const d = core.fromDayNum(dn), week = Math.floor((dn - core.EPOCH) / 7) + 1;
     return String(d.y) + '-week-' + String(week).padStart(3, '0');
@@ -218,5 +241,5 @@
     return { initialize: initialize, snapshot: snapshot, chooseFolder: chooseFolder,
       syncWeek: syncWeek, syncDate: syncDate, autoSync: autoSync };
   }
-  root.OraysaResources = { create: create, parsePdfLinks: parsePdfLinks };
+  root.OraysaResources = { create: create, parsePdfLinks: parsePdfLinks, weeklyAmudim: weeklyAmudim };
 })(window);
