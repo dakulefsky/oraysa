@@ -1,5 +1,5 @@
 /* Official Oraysa PDF synchronization for Otzaria.
- * Only PDFs linked from Oraysa's own daf pages and the known Oraysa S3 media host
+ * Only PDFs linked from Oraysa daf pages and the known Oraysa S3 media host
  * are accepted. No generated learning content and no audio/video downloads.
  */
 (function (root) {
@@ -9,12 +9,12 @@
 
   function safeName(value) {
     return String(value || 'Oraysa-resource.pdf')
-      .replace(/[\\/:*?"<>|\\u0000-\\u001f]/g, '-').replace(/\\s+/g, ' ')
+      .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ')
       .replace(/[. ]+$/g, '').slice(0, 150) || 'Oraysa-resource.pdf';
   }
   function htmlDecode(value) {
     return String(value || '').replace(/&amp;/gi, '&').replace(/&#x2f;/gi, '/')
-      .replace(/&#47;/g, '/').replace(/&quot;/gi, '"').replace(/&#39;/g, "'")
+      .replace(/&#47;/g, '/').replace(/&quot;/gi, '"').replace(/&#39;/gi, "'")
       .replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
   }
   function parsePdfLinks(html, pageUrl) {
@@ -22,9 +22,9 @@
       .replace(/\\u003a/gi, ':').replace(/\\u002f/gi, '/');
     const candidates = new Set();
     const patterns = [
-      /(?:href|src|fileUrl|downloadUrl|url)\\s*[:=]\\s*["']([^"'<>]+\\.pdf(?:\\?[^"'<>]*)?)["']/gi,
-      /https?:\\/\\/[^"'<>\\s\\\\]+?\\.pdf(?:\\?[^"'<>\\s\\\\]*)?/gi,
-      /["'](\\/[^"'<>\\s]+?\\.pdf(?:\\?[^"'<>\\s]*)?)["']/gi
+      /(?:href|src|fileUrl|downloadUrl|url)\s*[:=]\s*["']([^"'<>]+\.pdf(?:\?[^"'<>]*)?)["']/gi,
+      /https?:\/\/[^"'<>\\s]+?\.pdf(?:\?[^"'<>\\s]*)?/gi,
+      /["'](\/[^"'<>\\s]+?\.pdf(?:\?[^"'<>\\s]*)?)["']/gi
     ];
     for (const re of patterns) {
       let match;
@@ -35,7 +35,7 @@
       try {
         const url = new URL(raw, pageUrl);
         if (url.protocol !== 'https:' || !ALLOWED_HOSTS.has(url.hostname.toLowerCase())) continue;
-        if (!/\\.pdf$/i.test(url.pathname)) continue;
+        if (!/\.pdf$/i.test(url.pathname)) continue;
         url.hash = '';
         const href = url.toString();
         if (!found.has(href)) found.set(href, { url: href, filename: safeName(decodeURIComponent(url.pathname.split('/').pop() || 'Oraysa-resource.pdf')) });
@@ -46,13 +46,13 @@
   function weekStart(core, dn) { return dn - core.dowOf(dn); }
   function weekLabel(core, dn) {
     const d = core.fromDayNum(dn), week = Math.floor((dn - core.EPOCH) / 7) + 1;
-    return \`${d.y}-week-${String(week).padStart(3, '0')}\`;
+    return String(d.y) + '-week-' + String(week).padStart(3, '0');
   }
   function amudSlug(core, amud) {
-    return \`${amud.masechet}-${amud.daf}${amud.amud ? 'b' : 'a'}\`.replace(/[^a-z0-9א-ת-]/gi, '-');
+    return (amud.masechet + '-' + amud.daf + (amud.amud ? 'b' : 'a')).replace(/[^a-z0-9א-ת-]/gi, '-');
   }
   function create(api) {
-    const { core, call, load, save } = api;
+    const core = api.core, call = api.call, load = api.load, save = api.save;
     let state = { folder: null, downloaded: {}, lastSync: null, lastMessage: '' };
     let busy = false;
     async function persist() { await save(STORAGE_KEY, state); }
@@ -68,7 +68,7 @@
       return { folderName: state.folder && state.folder.name || '',
         configured: !!(state.folder && state.folder.folderToken && state.folder.path),
         lastSync: state.lastSync, lastMessage: state.lastMessage,
-        downloadedCount: Object.keys(state.downloaded).length, busy };
+        downloadedCount: Object.keys(state.downloaded).length, busy: busy };
     }
     async function chooseFolder() {
       const r = await call('fs.pickUserFolder', { title: 'תיקיית חומרי אורייתא' });
@@ -84,36 +84,36 @@
       return !!(r && r.success && r.data && r.data.isOnline);
     }
     async function fetchPage(url) {
-      const stream = await call('network.fetchStream', { url, method: 'GET', timeoutMs: 60000 });
+      const stream = await call('network.fetchStream', { url: url, method: 'GET', timeoutMs: 60000 });
       if (!stream || typeof stream[Symbol.asyncIterator] !== 'function') throw new Error('לא ניתן לקרוא את דף המשאבים מאתר אורייתא.');
       let status = 0, body = '';
       for await (const part of stream) {
         if (part.type === 'response') {
           status = part.status;
-          if (!part.ok) throw new Error(\`Oraysa returned HTTP ${status}\`);
+          if (!part.ok) throw new Error('Oraysa returned HTTP ' + status);
         } else if (part.type === 'data') {
           body += part.body || '';
           if (body.length > 12 * 1024 * 1024) throw new Error('דף המשאבים גדול מהצפוי.');
         }
       }
-      if (status && (status < 200 || status >= 300)) throw new Error(\`Oraysa returned HTTP ${status}\`);
+      if (status && (status < 200 || status >= 300)) throw new Error('Oraysa returned HTTP ' + status);
       return body;
     }
     async function discover(amud) {
-      if (!core.hasSiteResources(amud)) return { amud, resources: [], unavailable: true, message: 'מזהה המסכת באתר אורייתא עדיין לא מוגדר בתוסף.' };
+      if (!core.hasSiteResources(amud)) return { amud: amud, resources: [], unavailable: true, message: 'מזהה המסכת באתר אורייתא עדיין לא מוגדר בתוסף.' };
       const pageUrl = core.siteUrl(amud);
       const html = await fetchPage(pageUrl);
-      return { amud, resources: parsePdfLinks(html, pageUrl), unavailable: false };
+      return { amud: amud, resources: parsePdfLinks(html, pageUrl), unavailable: false };
     }
     function destination(amud, resource, archiveDate) {
-      const rootPath = state.folder.path.replace(/[\\\\/]+$/g, '');
-      const section = archiveDate ? \`Archive/${archiveDate}\` : \`Current/${weekLabel(core, weekStart(core, core.todayDn()))}\`;
-      return \`${rootPath}/Oraysa/${section}/${safeName(amudSlug(core, amud) + '__' + resource.filename)}\`;
+      const rootPath = state.folder.path.replace(/[\\/]+$/g, '');
+      const section = archiveDate ? 'Archive/' + archiveDate : 'Current/' + weekLabel(core, weekStart(core, core.todayDn()));
+      return rootPath + '/Oraysa/' + section + '/' + safeName(amudSlug(core, amud) + '__' + resource.filename);
     }
     async function download(amud, resource, archiveDate) {
       if (state.downloaded[resource.url]) return { skipped: true };
       const destPath = destination(amud, resource, archiveDate);
-      const r = await call('network.download', { url: resource.url, filename: safeName(resource.filename), destPath, resume: true });
+      const r = await call('network.download', { url: resource.url, filename: safeName(resource.filename), destPath: destPath, resume: true });
       if (!r || !r.success) throw new Error(r && r.error && (r.error.message || r.error.code) || 'ההורדה נכשלה.');
       state.downloaded[resource.url] = { filename: resource.filename, path: destPath,
         downloadedAt: new Date().toISOString(), amud: core.shortLabel(amud) };
@@ -128,7 +128,7 @@
         const outcome = await download(amud, resource, archiveDate);
         if (outcome.downloaded) downloaded++; else skipped++;
       }
-      return Object.assign(result, { downloaded, skipped });
+      return Object.assign(result, { downloaded: downloaded, skipped: skipped });
     }
     async function syncWeek() {
       if (busy) return { ok: false, message: 'הסנכרון כבר פועל.' };
@@ -142,15 +142,15 @@
           const amud = core.amudAt(startIdx + offset);
           if (!amud) continue;
           try { results.push(await syncAmud(amud, null)); }
-          catch (e) { results.push({ amud, error: e.message, resources: [], downloaded: 0, skipped: 0 }); }
+          catch (e) { results.push({ amud: amud, error: e.message, resources: [], downloaded: 0, skipped: 0 }); }
         }
         const total = results.reduce((n, r) => n + (r.downloaded || 0), 0);
         const errors = results.filter((r) => r.error).length;
         const empty = results.filter((r) => !r.error && !r.unavailable && !r.resources.length).length;
         state.lastSync = new Date().toISOString();
-        state.lastMessage = \`${total} קבצים חדשים · ${errors} שגיאות · ${empty} עמודים שטרם פורסמו בהם קבצים\`;
+        state.lastMessage = total + ' קבצים חדשים · ' + errors + ' שגיאות · ' + empty + ' עמודים שטרם פורסמו בהם קבצים';
         await persist();
-        return { ok: true, results, state: snapshot(), weekStart: core.isoOf(start) };
+        return { ok: true, results: results, state: snapshot(), weekStart: core.isoOf(start) };
       } finally { busy = false; }
     }
     async function syncDate(isoDate) {
@@ -164,16 +164,17 @@
       try {
         if (!(await online())) throw new Error('אין כרגע חיבור לאינטרנט.');
         const amud = core.amudAt(idx), result = await syncAmud(amud, isoDate);
-        state.lastMessage = result.error || \`${result.downloaded} קבצים חדשים לעמוד ${core.shortLabel(amud)}.\`;
+        state.lastMessage = result.error || result.downloaded + ' קבצים חדשים לעמוד ' + core.shortLabel(amud) + '.';
         await persist();
-        return { ok: true, result, state: snapshot() };
+        return { ok: true, result: result, state: snapshot() };
       } finally { busy = false; }
     }
     async function autoSync() {
       if (!state.folder || busy) return { skipped: true };
       return syncWeek();
     }
-    return { initialize, snapshot, chooseFolder, syncWeek, syncDate, autoSync };
+    return { initialize: initialize, snapshot: snapshot, chooseFolder: chooseFolder,
+      syncWeek: syncWeek, syncDate: syncDate, autoSync: autoSync };
   }
-  root.OraysaResources = { create, parsePdfLinks };
+  root.OraysaResources = { create: create, parsePdfLinks: parsePdfLinks };
 })(window);
