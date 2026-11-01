@@ -235,6 +235,13 @@ tr.clickable:hover td { background: var(--color-primary-subtle); }
 
 
 /* ── Oraysa visual refresh: Montserrat-led display system ── */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('../fonts/Montserrat[wght].ttf') format('truetype');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
 :root {
   --color-primary: #76501b;
   --color-on-primary: #fffdf8;
@@ -255,7 +262,7 @@ tr.clickable:hover td { background: var(--color-primary-subtle); }
   --color-outline-variant: #e4dfd4;
   --color-primary-subtle: color-mix(in srgb, var(--color-primary) 8%, transparent);
   --color-error-subtle: color-mix(in srgb, var(--color-error) 9%, transparent);
-  --font-display: 'Montserrat', 'Arial', sans-serif;
+  --font-display: 'Montserrat', 'Rubik', Arial, sans-serif;
   --radius-sm: 7px;
   --radius-md: 12px;
   --radius-lg: 17px;

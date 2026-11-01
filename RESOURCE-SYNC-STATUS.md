@@ -64,3 +64,8 @@ Official calendar: https://dev.oraysa.org/_files/ugd/4323da_75e996c05d904bfca264
 ## Visual refresh (2026-11-01)
 
 The interface received a styling-only refresh: Montserrat is the preferred display face for Latin-script headers, navigation labels, badges, and compact UI labels, with system sans-serif fallback. Hebrew text retains its readable Hebrew/system fallback rather than forcing a Latin typeface onto Hebrew glyphs. The palette is more restrained ivory, stone, and warm gold; cards, controls, focus states, spacing, and compact mobile navigation have been refined. No remote font dependency was added, so the actual Montserrat font file must be available on the host device for that face to render; otherwise the declared fallback is used. Functional behavior and official-resource restrictions are unchanged.
+
+
+## Bundled display font (2026-11-01)
+
+Montserrat is bundled locally as an unmodified variable TrueType font from Google Fonts under the SIL Open Font License 1.1. The complete upstream license is included at `fonts/OFL.txt`. The font is loaded from the plugin package with `font-display: swap`; no external font request is required. The display font stack falls back to Rubik for glyphs not present in Montserrat, preserving Hebrew UI rendering. Functional behavior and official-resource restrictions are unchanged.
