@@ -78,7 +78,7 @@
   }
   function create(api) {
     const core = api.core, call = api.call, load = api.load, save = api.save;
-    let state = { folder: null, downloaded: {}, lastSync: null, lastMessage: '' };
+    let state = { folder: null, downloaded: {}, lastSync: null, lastMessage: '', lastResults: [] };
     let busy = false;
     async function persist() { await save(STORAGE_KEY, state); }
     async function initialize() {
@@ -93,7 +93,7 @@
       return { folderName: state.folder && state.folder.name || '',
         configured: !!(state.folder && state.folder.folderToken && state.folder.path),
         lastSync: state.lastSync, lastMessage: state.lastMessage,
-        downloadedCount: Object.keys(state.downloaded).length, busy: busy };
+        downloadedCount: Object.keys(state.downloaded).length, lastResults: state.lastResults || [], busy: busy };
     }
     async function chooseFolder() {
       const r = await call('fs.pickUserFolder', { title: 'תיקיית חומרי אורייתא' });
@@ -210,6 +210,7 @@
         const errors = results.filter((r) => r.error).length;
         const empty = results.filter((r) => !r.error && !r.unavailable && !r.resources.length).length;
         state.lastSync = new Date().toISOString();
+        state.lastResults = results.map((r) => ({ amud: core.shortLabel(r.amud), resourceCount: (r.resources || []).length, downloaded: r.downloaded || 0, skipped: r.skipped || 0, error: r.error || '', unavailable: !!r.unavailable }));
         state.lastMessage = total + ' קבצים חדשים · ' + errors + ' שגיאות · ' + empty + ' עמודים שטרם פורסמו בהם קבצים';
         await persist();
         return { ok: true, results: results, state: snapshot(), weekStart: core.isoOf(start) };
@@ -234,6 +235,7 @@
           catch (e) { results.push({ amud: amud, error: e.message, resources: [], downloaded: 0, skipped: 0 }); }
         }
         const total = results.reduce((n, r) => n + (r.downloaded || 0), 0);
+        state.lastResults = results.map((r) => ({ amud: core.shortLabel(r.amud), resourceCount: (r.resources || []).length, downloaded: r.downloaded || 0, skipped: r.skipped || 0, error: r.error || '', unavailable: !!r.unavailable }));
         state.lastMessage = total + ' קבצים חדשים נשמרו עבור ' + core.DAY_NAMES[plan.dow] + '.';
         await persist();
         return { ok: true, results: results, downloaded: total, state: snapshot() };

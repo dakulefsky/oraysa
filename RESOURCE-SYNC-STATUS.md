@@ -69,3 +69,8 @@ The interface received a styling-only refresh: Montserrat is the preferred displ
 ## Bundled display font (2026-11-01)
 
 Montserrat is bundled locally as an unmodified variable TrueType font from Google Fonts under the SIL Open Font License 1.1. The complete upstream license is included at `fonts/OFL.txt`. The font is loaded from the plugin package with `font-display: swap`; no external font request is required. The display font stack falls back to Rubik for glyphs not present in Montserrat, preserving Hebrew UI rendering. Functional behavior and official-resource restrictions are unchanged.
+
+
+## Per-amud sync feedback (2026-11-01)
+
+The resource tab now retains the last result for each of the five amudim and shows whether PDFs were found, newly downloaded, already present, not yet published, unavailable, or failed. This makes partial success visible instead of presenting only an aggregate download count. Plugin version is 1.3.2; author credit is DanTheMan.

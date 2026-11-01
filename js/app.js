@@ -389,7 +389,16 @@
       '<div class="actions wrap"><input id="resource-date" type="date" min="2020-01-05" max="' + C.isoOf(today - 1) + '" aria-label="תאריך לימוד קודם">' +
       '<button class="btn btn-outline" data-resource-date' + (resourceStatus.busy ? ' disabled' : '') + '>מצא והורד משאבים</button></div></div>' +
       '<div class="card"><div class="card-title">השבוע הנוכחי</div>' +
-      assignments.map((a) => '<div class="assignment"><div class="amud-label">' + esc(C.longLabel(a)) + '</div><span class="muted">ייבדק אוטומטית</span></div>').join('') +
+      assignments.map((a) => {
+        const prior = (resourceStatus.lastResults || []).find((r) => r.amud === C.shortLabel(a));
+        let status = 'ייבדק אוטומטית';
+        if (prior && prior.error) status = 'שגיאה: ' + prior.error;
+        else if (prior && prior.unavailable) status = 'הקישור למסכת עדיין לא הוגדר';
+        else if (prior && !prior.resourceCount) status = 'טרם פורסם PDF';
+        else if (prior && prior.downloaded) status = prior.downloaded + ' קבצים חדשים נשמרו';
+        else if (prior && prior.resourceCount) status = prior.resourceCount + ' קבצים זמינים · ללא קובץ חדש';
+        return '<div class="assignment"><div class="amud-label">' + esc(C.longLabel(a)) + '</div><span class="muted">' + esc(status) + '</span></div>';
+      }).join('') +
       '</div></div>';
   }
 
