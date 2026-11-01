@@ -26,7 +26,7 @@
     const candidates = new Set();
     const patterns = [
       /(?:href|src|fileUrl|downloadUrl|url)\s*[:=]\s*["']([^"'<>]+\.pdf(?:\?[^"'<>]*)?)["']/gi,
-      /https?:\/\/[^"'<>\s]+?\.pdf(?:\?[^"'<>\s]*)?/gi,
+      /https?:\/\/[^"'<>\s]+?\.pdf(?:\?[^"'<>\s]*)?(?=$|["'<>\s])/gi,
       /["'](\/[^"'<>\s]+?\.pdf(?:\?[^"'<>\s]*)?)["']/gi
     ];
     for (const re of patterns) {
