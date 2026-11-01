@@ -26,7 +26,9 @@
     "app.open_url",
     "network.access",
     "fs.user_files.read",
-    "app.info.read"
+    "app.info.read",
+    "plugin.storage.read",
+    "plugin.storage.write"
   ],
   "contributes": {
     "toolTab": {
