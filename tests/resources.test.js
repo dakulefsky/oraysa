@@ -73,3 +73,22 @@ test('discovers the live Oraysa PDF anchor alongside its download wrapper', () =
   assert.equal(found.length, 1);
   assert.equal(found[0].url, 'https://oraysa-media.s3.amazonaws.com/oraysa/Yevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf');
 });
+
+test('rejects lookalike hosts, HTTP URLs, and non-PDF paths', () => {
+  const html = [
+    '<a href="https://www.oraysa.org.evil.example/file.pdf"></a>',
+    '<a href="https://evil-www.oraysa.org/file.pdf"></a>',
+    '<a href="http://www.oraysa.org/file.pdf"></a>',
+    '<a href="https://oraysa-media.s3.amazonaws.com/file.pdf.exe"></a>',
+    '<a href="https://oraysa-media.s3.amazonaws.com/video.mp4"></a>'
+  ].join('');
+  assert.deepEqual(parsePdfLinks(html, 'https://www.oraysa.org/en'), []);
+});
+
+test('does not discard a valid official PDF when its encoded filename is malformed', () => {
+  const url = 'https://oraysa-media.s3.amazonaws.com/oraysa/notes%ZZ.pdf';
+  const found = parsePdfLinks('<a href="' + url + '">PDF</a>', 'https://www.oraysa.org/en');
+  assert.equal(found.length, 1);
+  assert.equal(found[0].url, url);
+  assert.equal(found[0].filename, 'notes%ZZ.pdf');
+});

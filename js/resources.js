@@ -12,6 +12,9 @@
       .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ')
       .replace(/[. ]+$/g, '').slice(0, 150) || 'Oraysa-resource.pdf';
   }
+  function safeDecode(value) {
+    try { return decodeURIComponent(value); } catch (_) { return value; }
+  }
   function htmlDecode(value) {
     return String(value || '').replace(/&amp;/gi, '&').replace(/&#x2f;/gi, '/')
       .replace(/&#47;/g, '/').replace(/&quot;/gi, '"').replace(/&#39;/gi, "'")
@@ -38,7 +41,7 @@
         if (!/\.pdf$/i.test(url.pathname)) continue;
         url.hash = '';
         const href = url.toString();
-        if (!found.has(href)) found.set(href, { url: href, filename: safeName(decodeURIComponent(url.pathname.split('/').pop() || 'Oraysa-resource.pdf')) });
+        if (!found.has(href)) found.set(href, { url: href, filename: safeName(safeDecode(url.pathname.split('/').pop() || 'Oraysa-resource.pdf')) });
       } catch (_) { /* ignore malformed or non-URL candidates */ }
     }
     return Array.from(found.values());
