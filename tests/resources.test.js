@@ -54,3 +54,13 @@ test('accepts the exact official Yevamos 122b Marei Mekomos PDF', () => {
   assert.equal(found[0].url, url);
   assert.equal(found[0].filename, 'Yevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf');
 });
+
+test('manifest declares every permission used by resource sync persistence and downloads', () => {
+  const manifest = require('../manifest.json');
+  for (const permission of [
+    'plugin.storage.read', 'plugin.storage.write',
+    'fs.user_files.read', 'network.access', 'app.info.read'
+  ]) assert.ok(manifest.permissions.includes(permission), 'missing ' + permission);
+  assert.ok(manifest.network && manifest.network.allowlist.includes('https://www.oraysa.org'));
+  assert.ok(manifest.network.allowlist.includes('https://oraysa-media.s3.amazonaws.com'));
+});
