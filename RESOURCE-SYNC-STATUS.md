@@ -36,6 +36,14 @@ Before release, run the plugin inside Otzaria with network access approved and v
 The user chooses a persistent folder once through `fs.pickUserFolder`. Downloads use `network.download` with a destination path inside that approved folder. The plugin keeps a URL-to-file metadata index in Otzaria plugin storage.
 
 
+## Live catalog discovery check (2026-11-01)
+
+A rendered browser inspection of the official Oraysa Yevamos 122b resource page confirmed that its PDF section contains both:
+- A direct `https://oraysa-media.s3.amazonaws.com/oraysa/Yevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf` anchor.
+- An Oraysa `/en/download_file?type=pdf&file=...` wrapper for the same PDF.
+
+The parser accepts the direct S3 PDF and rejects the wrapper because its URL path is not a PDF. A regression test now mirrors these two real anchor shapes. This closes the earlier uncertainty about whether the live Yevamos page exposes a discoverable direct PDF link. It does **not** yet prove all five amudim for the new Kiddushin week or verify the plugin's own Otzaria network/download permissions at runtime.
+
 ## Verified weekly assignments (updated 2026-11-01)
 
 The verified map now covers two consecutive weeks:
