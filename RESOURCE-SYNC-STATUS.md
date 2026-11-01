@@ -59,3 +59,8 @@ The official Oraysa printable calendar identifies the Yevamos calendar period as
 The old projected linear calendar selected a different five-amud window and could cross into Kiddushin. The downloader now fails closed for any week without a verified schedule entry instead of silently downloading the projected assignment. Add each future week only after checking Oraysa's published calendar/current schedule. This is intentionally safer than guessing.
 
 Official calendar: https://dev.oraysa.org/_files/ugd/4323da_75e996c05d904bfca2643c55d3a1e82b.pdf
+
+
+## Visual refresh (2026-11-01)
+
+The interface received a styling-only refresh: Montserrat is the preferred display face for Latin-script headers, navigation labels, badges, and compact UI labels, with system sans-serif fallback. Hebrew text retains its readable Hebrew/system fallback rather than forcing a Latin typeface onto Hebrew glyphs. The palette is more restrained ivory, stone, and warm gold; cards, controls, focus states, spacing, and compact mobile navigation have been refined. No remote font dependency was added, so the actual Montserrat font file must be available on the host device for that face to render; otherwise the declared fallback is used. Functional behavior and official-resource restrictions are unchanged.
