@@ -63,3 +63,13 @@ test('manifest declares the resource sync network and folder access', () => {
   assert.ok(manifest.network.allowlist.includes('https://www.oraysa.org'));
   assert.ok(manifest.network.allowlist.includes('https://oraysa-media.s3.amazonaws.com'));
 });
+
+test('discovers the live Oraysa PDF anchor alongside its download wrapper', () => {
+  const html = [
+    '<a href="https://oraysa-media.s3.amazonaws.com/oraysa/Yevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf"></a>',
+    '<a href="https://www.oraysa.org/en/download_file?type=pdf&amp;file=oraysa%2FYevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf"></a>'
+  ].join('');
+  const found = parsePdfLinks(html, 'https://www.oraysa.org/en?amud=%3A%D7%A7%D7%9B%D7%91&masechta=1462');
+  assert.equal(found.length, 1);
+  assert.equal(found[0].url, 'https://oraysa-media.s3.amazonaws.com/oraysa/Yevamos-122b-Pisgamei-Oraysa-Marei-Mekomos.pdf');
+});
