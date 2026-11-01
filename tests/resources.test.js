@@ -92,3 +92,8 @@ test('does not discard a valid official PDF when its encoded filename is malform
   assert.equal(found[0].url, url);
   assert.equal(found[0].filename, 'notes%ZZ.pdf');
 });
+
+test('uses the requested Otzaria plugin author credit', () => {
+  const manifest = require('../manifest.json');
+  assert.equal(manifest.author, 'DanTheMan');
+});

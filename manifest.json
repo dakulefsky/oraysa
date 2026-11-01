@@ -5,7 +5,7 @@
   "version": "1.3.1",
   "sdkVersion": "1.x",
   "description": "לוח תוכנית אורייתא — עמוד וחזרה, חומרי עזר רשמיים והורדת PDF אוטומטית לשימוש לא מקוון.",
-  "author": "dakulefsky",
+  "author": "DanTheMan",
   "homepage": "https://github.com/dakulefsky/oraysa",
   "stability": "beta",
   "minAppVersion": "0.9.98",
