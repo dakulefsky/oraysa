@@ -143,7 +143,7 @@
       </div>
       <div class="res-row">
         <div class="res-head">מאתר אורייתא</div>
-        <p class="muted">מראי מקומות (פתגמי אורייתא), סיכומי אורייתא (שאלות ותשובות), צורת הדף עם פירוש, חידודי אורייתא (חידון יומי), זכרו, ושיעורי וידאו ואודיו.</p>
+        <p class="muted">מראי מקומות רשמיים, סיכומי אורייתא, צורת הדף עם פירוש, חידודי אורייתא וחומרי PDF רשמיים נוספים.</p>
         <div class="actions wrap">
           <button class="btn btn-primary" data-url="${esc(C.siteUrl(a))}">חומרי העזר ל${esc(C.shortLabel(a))}</button>
           ${others.map(siteBtn).join('')}
