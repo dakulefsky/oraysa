@@ -559,3 +559,45 @@ body { font-family: var(--font-ui); }
   .oraysa-banner-he { font-size: 12px; }
   .bottom-nav .nav-btn { font-family: var(--font-ui); font-size: 10px; }
 }
+
+/* ORAYSA wordmark refinement: tall, condensed lettering drawn from the
+   official ORAYSA wordmark. The supplied emblem image remains untouched. */
+.topbar .brand-lockup h1,
+.oraysa-banner-word {
+  direction: ltr;
+  font-family: "Arial Narrow", "Roboto Condensed", "Liberation Sans Narrow",
+    "Nimbus Sans Narrow", sans-serif;
+  font-stretch: condensed;
+  font-weight: 700;
+  letter-spacing: .13em;
+  line-height: .98;
+  transform: scaleX(.84);
+  transform-origin: left center;
+}
+.topbar .brand-lockup h1 {
+  color: #174b9b;
+  font-size: 21px;
+  align-self: flex-start;
+  margin-inline-end: -12%;
+}
+.brand-he {
+  color: #22a9bd;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.oraysa-banner-word {
+  color: #fff;
+  font-size: clamp(29px, 4.2vw, 39px);
+  margin-inline-end: -10%;
+}
+.oraysa-banner-sub {
+  color: #a9f0f3;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+@media (max-width: 640px) {
+  .topbar .brand-lockup h1 { font-size: 17px; }
+  .oraysa-banner-word { font-size: 25px; }
+}
