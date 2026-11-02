@@ -243,24 +243,24 @@ tr.clickable:hover td { background: var(--color-primary-subtle); }
   font-display: swap;
 }
 :root {
-  --color-primary: #76501b;
-  --color-on-primary: #fffdf8;
-  --color-primary-container: #f3e4c9;
-  --color-on-primary-container: #4d3515;
-  --color-secondary: #625847;
+  --color-primary: #174b9b;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #dceaff;
+  --color-on-primary-container: #0b326e;
+  --color-secondary: #168eaa;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #eee8dc;
-  --color-on-secondary-container: #3e382e;
-  --color-tertiary: #52644d;
-  --color-surface: #fffefa;
-  --color-on-surface: #24231f;
-  --color-on-surface-variant: #6d685e;
-  --color-surface-container: #f8f5ee;
-  --color-surface-container-high: #f3efe6;
-  --color-surface-container-highest: #eae5da;
-  --color-outline: #a9a294;
-  --color-outline-variant: #e4dfd4;
-  --color-primary-subtle: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  --color-secondary-container: #dff6fa;
+  --color-on-secondary-container: #064d60;
+  --color-tertiary: #39745f;
+  --color-surface: #ffffff;
+  --color-on-surface: #17263c;
+  --color-on-surface-variant: #5d6d80;
+  --color-surface-container: #f4f8fc;
+  --color-surface-container-high: #edf4fb;
+  --color-surface-container-highest: #e3edf7;
+  --color-outline: #8a9db3;
+  --color-outline-variant: #d5e0ec;
+  --color-primary-subtle: color-mix(in srgb, var(--color-primary) 9%, transparent);
   --color-error-subtle: color-mix(in srgb, var(--color-error) 9%, transparent);
   --font-display: 'Montserrat', 'Rubik', Arial, sans-serif;
   --radius-sm: 7px;
@@ -274,7 +274,7 @@ button, input, select { font: inherit; }
   height: 64px;
   padding-inline: clamp(14px, 2.4vw, 30px);
   gap: 14px;
-  background: rgba(248, 245, 238, .96);
+  background: rgba(255, 255, 255, .97);
   border-bottom: 1px solid var(--color-outline-variant);
 }
 .topbar h1 {
@@ -295,8 +295,8 @@ button, input, select { font: inherit; }
 }
 .topbar .nav-btn:hover, .bottom-nav .nav-btn:hover { background: var(--color-primary-subtle); }
 .topbar .nav-btn.active, .bottom-nav .nav-btn.active {
-  background: #e9dfcc;
-  color: #513b1d;
+  background: #e4f1ff;
+  color: #123f83;
 }
 .topbar-logo { width: 34px; height: 34px; }
 .app-content { padding: clamp(14px, 2.4vw, 28px); }
@@ -305,19 +305,19 @@ button, input, select { font: inherit; }
   padding: 19px 21px;
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-lg);
-  background: #fffefa;
-  box-shadow: 0 3px 14px rgba(50, 42, 27, .035);
+  background: #ffffff;
+  box-shadow: 0 3px 14px rgba(23, 55, 95, .045);
 }
 .card.primary {
-  border-color: #d8c39d;
-  background: linear-gradient(135deg, #fbf7ed 0%, #f6efdf 100%);
+  border-color: #b9d9ef;
+  background: linear-gradient(135deg, #f5fbff 0%, #eaf5fc 100%);
 }
 .card-title {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: .015em;
-  color: #79551f;
+  color: #174b9b;
   margin-bottom: 13px;
 }
 .date-main { font-size: 1.5rem; }
@@ -334,11 +334,11 @@ button, input, select { font: inherit; }
 }
 .btn:not(:disabled):hover { opacity: 1; transform: translateY(-1px); }
 .btn-primary {
-  background: #76501b;
-  box-shadow: 0 2px 5px rgba(83, 56, 18, .16);
+  background: #174b9b;
+  box-shadow: 0 2px 5px rgba(23, 75, 155, .18);
 }
-.btn-tonal { background: #eee8dc; }
-.btn-outline { border-color: #cfc7b8; }
+.btn-tonal { background: #e5f3f8; }
+.btn-outline { border-color: #b9cde0; }
 .icon-btn { border-radius: 10px; }
 .chip, .chip-btn {
   font-family: var(--font-display);
@@ -403,3 +403,22 @@ button, input, select { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* ORAYSA identity: blue and cyan program palette */
+.brand-mark { display:inline-flex;align-items:center;justify-content:center;width:35px;height:35px;flex:0 0 35px;border-radius:3px;background:#174b9b;color:#fff;font-family:'FrankRuhlCLM','David',serif;font-size:25px;font-weight:700;box-shadow:inset 0 0 0 2px rgba(255,255,255,.24); }
+.brand-lockup { display:flex;flex-direction:column;gap:1px;min-width:0; }
+.topbar .brand-lockup h1 { color:#174b9b;font-size:18px;letter-spacing:.08em;line-height:1.05; }
+.brand-he { color:#22a9bd;font-size:10px;font-weight:700;white-space:nowrap; }
+.topbar-sub { border-inline-start:1px solid #cfe0ef;padding-inline-start:12px;color:#4e789e;font-weight:600; }
+.oraysa-banner { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 20px;border-radius:13px;background:linear-gradient(105deg,#174b9b 0%,#2362ad 72%,#168eaa 100%);color:#fff;box-shadow:0 5px 18px rgba(23,75,155,.13); }
+.oraysa-banner-main { display:flex;flex-direction:column;gap:3px; }
+.oraysa-banner-word { font-family:var(--font-display);font-size:25px;font-weight:850;letter-spacing:.13em;line-height:1; }
+.oraysa-banner-sub { font-size:10px;font-weight:650;letter-spacing:.09em;opacity:.92; }
+.oraysa-banner-he { color:#a9f0f3;font-size:15px;font-weight:700;white-space:nowrap; }
+.oraysa-banner-note { font-size:11px;opacity:.85; }
+.card.primary { border-color:#b9d9ef;background:linear-gradient(135deg,#f5fbff 0%,#eaf5fc 100%); }
+.card-title { color:#174b9b; }
+.btn-primary { background:#174b9b;box-shadow:0 2px 5px rgba(23,75,155,.18); }
+.btn-tonal,.chip-btn.on { background:#e1f4f7;color:#07556b; }
+@media(max-width:640px){.brand-mark{width:29px;height:29px;flex-basis:29px;font-size:21px}.topbar .brand-lockup h1{font-size:15px}.brand-he{font-size:9px}.topbar-sub{display:none}.oraysa-banner{padding:13px 14px;gap:8px}.oraysa-banner-word{font-size:21px}.oraysa-banner-sub{font-size:8px}.oraysa-banner-he{font-size:12px}}
