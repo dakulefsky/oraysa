@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "com.dakulefsky.oraysa-daily",
   "name": "ORAYSA — עמוד וחזרה",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "sdkVersion": "1.x",
   "description": "תוכנית אורייתא — עמוד יומי, חזרה יומית ושבועית, משאבי לימוד רשמיים והורדת PDF לשימוש לא מקוון.",
   "author": "DanTheMan",
