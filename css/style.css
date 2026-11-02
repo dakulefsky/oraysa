@@ -422,3 +422,140 @@ button, input, select { font: inherit; }
 .btn-primary { background:#174b9b;box-shadow:0 2px 5px rgba(23,75,155,.18); }
 .btn-tonal,.chip-btn.on { background:#e1f4f7;color:#07556b; }
 @media(max-width:640px){.brand-mark{width:29px;height:29px;flex-basis:29px;font-size:21px}.topbar .brand-lockup h1{font-size:15px}.brand-he{font-size:9px}.topbar-sub{display:none}.oraysa-banner{padding:13px 14px;gap:8px}.oraysa-banner-word{font-size:21px}.oraysa-banner-sub{font-size:8px}.oraysa-banner-he{font-size:12px}}
+
+
+/* ── ORAYSA finish: confident Hebrew-first identity ── */
+:root {
+  --font-display: 'Rubik', system-ui, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 13px;
+  --radius-lg: 19px;
+}
+body { font-family: var(--font-ui); }
+.topbar {
+  min-height: 68px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(18, 55, 100, .045);
+}
+.brand-mark-image {
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  object-fit: contain;
+}
+.topbar .brand-lockup h1 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 850;
+  letter-spacing: .09em;
+  line-height: 1.05;
+}
+.brand-he {
+  color: #168eaa;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+.topbar-sub {
+  border-inline-start: 1px solid #d5e3ef;
+  padding-inline-start: 14px;
+  color: #58718c;
+  font-size: 11px;
+}
+.topbar .nav-btn, .bottom-nav .nav-btn {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 650;
+}
+.topbar .nav-btn.active, .bottom-nav .nav-btn.active {
+  background: #e6f4f8;
+  color: #07556b;
+  box-shadow: inset 0 0 0 1px rgba(22,142,170,.12);
+}
+.oraysa-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 116px;
+  padding: 22px 26px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 18px;
+  background: linear-gradient(112deg, #123f83 0%, #174b9b 58%, #087f9d 100%);
+  box-shadow: 0 10px 28px rgba(23,75,155,.16);
+}
+.oraysa-banner::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 230px;
+  height: 230px;
+  inset-inline-end: 18%;
+  top: -145px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgba(255,255,255,.035), 0 0 0 50px rgba(255,255,255,.025);
+}
+.oraysa-banner-word {
+  font-family: var(--font-display);
+  font-size: clamp(25px, 4vw, 34px);
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+.oraysa-banner-sub {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: .015em;
+  opacity: .98;
+}
+.oraysa-banner-note {
+  margin-top: 3px;
+  font-size: 11px;
+  opacity: .8;
+}
+.oraysa-banner-he {
+  font-family: var(--font-ui);
+  font-size: clamp(14px, 2vw, 17px);
+  font-weight: 750;
+  letter-spacing: 0;
+  color: #b9f2f4;
+}
+.card {
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(23,55,95,.045);
+}
+.card.primary {
+  border: 1px solid #b6d8ee;
+  background: linear-gradient(135deg,#f7fcff 0%,#eaf5fc 100%);
+  box-shadow: 0 5px 18px rgba(23,75,155,.055);
+}
+.card-title {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+.date-main { font-size: 1.55rem; }
+.amud-label { line-height: 1.35; }
+.btn { font-family: var(--font-ui); font-size: 13px; }
+.btn-primary { background: #174b9b; }
+.btn-tonal { background: #e1f4f7; color: #07556b; }
+.btn-outline { border-color: #bfd0e0; }
+.icon-btn { border-radius: 11px; }
+.chip, .chip-btn { font-family: var(--font-ui); }
+.panel { border-radius: 18px; }
+.panel-head { border-bottom: 1px solid var(--color-outline-variant); }
+.panel-body h3 { font-family: var(--font-ui); }
+@media (max-width: 640px) {
+  .topbar { min-height: 52px; height: 52px; }
+  .brand-mark-image { width: 34px; height: 34px; flex-basis: 34px; }
+  .topbar .brand-lockup h1 { font-size: 16px; }
+  .brand-he { font-size: 9px; }
+  .oraysa-banner { min-height: 96px; padding: 16px 15px; border-radius: 15px; }
+  .oraysa-banner-word { font-size: 23px; }
+  .oraysa-banner-sub { font-size: 10px; }
+  .oraysa-banner-note { font-size: 9px; }
+  .oraysa-banner-he { font-size: 12px; }
+  .bottom-nav .nav-btn { font-family: var(--font-ui); font-size: 10px; }
+}
