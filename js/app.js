@@ -78,7 +78,7 @@
     const dn = state.viewDn;
     const plan = C.dayPlan(dn, state.settings);
     const isToday = dn === state.today;
-    let html = `<div class="card"><div class="day-nav">
+    let html = `<div class="oraysa-banner"><div class="oraysa-banner-main"><div class="oraysa-banner-word">ORAYSA</div><div class="oraysa-banner-sub">THE AMUD &amp; CHAZARAH INITIATIVE</div><div class="oraysa-banner-note">A daily seder of learning and chazarah</div></div><div class="oraysa-banner-he">ללמוד · לחזור · לקנות</div></div><div class="card"><div class="day-nav">
       <button class="icon-btn" data-day="-1" title="היום הקודם" aria-label="היום הקודם">›</button>
       <div class="date-block">
         <div class="date-main">${esc(dateTitle(dn))}</div>
@@ -92,7 +92,7 @@
     } else if (plan.kind === 'after') {
       html += '<div class="card"><p class="muted">סיום הש״ס! אין עוד עמודים בלוח.</p></div>';
     } else if (plan.kind === 'learn') {
-      html += `<div class="card primary"><div class="card-title">שיעור היום</div>
+      html += `<div class="card primary"><div class="card-title">העמוד היומי</div>
         ${assignmentRow(plan.learn, `L:${plan.learn.idx}`, 'למדתי', 'סמן שלמדתי')}</div>`;
       if (plan.review) {
         html += `<div class="card"><div class="card-title">חזרה על עמוד אתמול</div>
@@ -134,7 +134,7 @@
       : state.settings.meforshim.map((m) => `<span class="chip">${esc(m)}</span>`).join(' ');
     const others = (weekly || []).filter((w) => w.idx !== a.idx);
     const siteBtn = (x) => `<button class="btn btn-outline" data-url="${esc(C.siteUrl(x))}">${C.hasSiteResources(x) ? '' : ''}${esc(C.shortLabel(x))}</button>`;
-    return `<div class="card"><div class="card-title">מפרשים וחומרי עזר</div>
+    return `<div class="card"><div class="card-title">משאבי לימוד</div>
       <div class="res-row">
         <div class="res-head">מפרשים באוצריא</div>
         <div class="chips">${mefChips}</div>
@@ -142,7 +142,7 @@
         <p class="muted">${mefState ? 'לחצו על מפרש כדי להוסיף או להסיר אותו מהטאב הפתוח.' : 'בחירת המפרשים — בהגדרות. אחרי הפתיחה יוצגו כאן כל המפרשים הזמינים.'}</p>
       </div>
       <div class="res-row">
-        <div class="res-head">מאתר אורייתא</div>
+        <div class="res-head">חומרי אורייתא לעמוד היומי</div>
         <p class="muted">מראי מקומות רשמיים, סיכומי אורייתא, צורת הדף עם פירוש, חידודי אורייתא וחומרי PDF רשמיים נוספים.</p>
         <div class="actions wrap">
           <button class="btn btn-primary" data-url="${esc(C.siteUrl(a))}">חומרי העזר ל${esc(C.shortLabel(a))}</button>
@@ -372,7 +372,7 @@
       : '<p class="muted">בחרו תיקייה פעם אחת. אוצריא תשמור בה את קובצי ה-PDF ותאפשר גישה קבועה גם בהפעלות הבאות.</p>';
     content.innerHTML = '<div class="view">' +
       '<div class="card"><div class="card-title">חומרי אורייתא — זמין גם בלי אינטרנט</div>' +
-      '<p class="muted">התוסף בודק את חמשת עמודי הלימוד של השבוע ומוריד קובצי PDF רשמיים כשאורייתא מפרסמת אותם. עמודים שעדיין אין להם קובץ ייבדקו שוב בסנכרון הבא.</p>' +
+      '<p class="muted">חומרי הלימוד הרשמיים של אורייתא לעמודי השבוע נשמרים כאן לשימוש גם ללא חיבור לאינטרנט. התוסף בודק פרסומים חדשים ומוריד קובצי PDF בלבד.</p>' +
       folder +
       '<div class="kv"><span>קבצים שנשמרו</span><b>' + resourceStatus.downloadedCount + '</b></div>' +
       '<div class="kv"><span>סנכרון אחרון</span><span>' + esc(last) + '</span></div>' +
@@ -457,7 +457,7 @@
     state.today = C.todayDn();
     document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === state.tab));
     const t = C.learningIndexOn(state.today);
-    $('#topbar-sub').textContent = t != null ? `היום: ${C.shortLabel(C.amudAt(t))}` : 'היום: חזרה שבועית';
+    $('#topbar-sub').textContent = t != null ? `העמוד היומי · ${C.shortLabel(C.amudAt(t))}` : 'חזרה שבועית';
     ({ day: renderDay, month: renderMonth, lookup: renderLookup, bechinos: renderBechinos, progress: renderProgress, resources: renderResources })[state.tab]();
   }
 
