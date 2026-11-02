@@ -1,30 +1,36 @@
 {
   "schemaVersion": 1,
   "id": "com.dakulefsky.oraysa-daily",
-  "name": "אורייתא יומי",
-  "version": "1.1.2",
+  "name": "ORAYSA",
+  "version": "1.3.3",
   "sdkVersion": "1.x",
-  "description": "לוח תוכנית אורייתא — עמוד וחזרה: העמוד והחזרה של היום, פתיחה עם מפרשים, חומרי העזר והבחינות של אורייתא, לוח חודשי, איתור תאריך לכל עמוד ומעקב התקדמות.",
-  "author": "dakulefsky",
+  "description": "תוכנית אורייתא — עמוד יומי, חזרה יומית ושבועית, משאבי לימוד רשמיים והורדת PDF לשימוש לא מקוון.",
+  "author": "DanTheMan",
   "homepage": "https://github.com/dakulefsky/oraysa",
   "stability": "beta",
-  "minAppVersion": "0.9.97",
+  "minAppVersion": "0.9.98",
   "entrypoint": "index.html",
   "icon": "icon/icon.png",
   "network": {
-    "enabled": false,
-    "allowlist": []
+    "enabled": true,
+    "allowlist": [
+      "https://www.oraysa.org",
+      "https://oraysa-media.s3.amazonaws.com"
+    ]
   },
   "permissions": [
     "library.books.read",
     "library.content.read",
     "reader.open",
     "calendar.read",
-    "app.open_url"
+    "app.open_url",
+    "network.access",
+    "fs.user_files.read",
+    "app.info.read"
   ],
   "contributes": {
     "toolTab": {
-      "title": "אורייתא יומי",
+      "title": "ORAYSA",
       "order": 320,
       "allowOrderBeforeBuiltIns": false,
       "defaultPinned": true,

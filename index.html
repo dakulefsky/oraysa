@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>אורייתא יומי</title>
+  <title>ORAYSA — עמוד וחזרה</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="topbar-side">
-        <img class="topbar-logo" src="icon/logo.png" alt="" aria-hidden="true">
-        <h1>אורייתא יומי</h1>
+        <img class="brand-mark-image" src="icon/logo.png" alt="" aria-hidden="true">
+        <div class="brand-lockup"><h1>ORAYSA</h1><span class="brand-he">עמוד וחזרה</span></div>
         <span class="topbar-sub" id="topbar-sub"></span>
       </div>
       <nav class="topbar-nav" id="nav">
@@ -20,6 +20,7 @@
         <button class="nav-btn" data-tab="lookup">איתור עמוד</button>
         <button class="nav-btn" data-tab="bechinos">בחינות</button>
         <button class="nav-btn" data-tab="progress">התקדמות</button>
+        <button class="nav-btn" data-tab="resources">חומרי אורייתא</button>
       </nav>
       <div class="topbar-side topbar-end">
         <button class="topbar-btn" id="btn-settings" title="הגדרות" aria-label="הגדרות">
@@ -33,6 +34,7 @@
       <button class="nav-btn" data-tab="lookup">איתור</button>
       <button class="nav-btn" data-tab="bechinos">בחינות</button>
       <button class="nav-btn" data-tab="progress">התקדמות</button>
+      <button class="nav-btn" data-tab="resources">חומרים</button>
     </nav>
     <main class="app-content" id="content"></main>
   </div>
@@ -75,6 +77,7 @@
 
   <script src="js/core.js"></script>
   <script src="js/otzaria.js"></script>
+  <script src="js/resources.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

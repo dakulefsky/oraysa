@@ -2,9 +2,11 @@
   'use strict';
   const C = window.OraysaCore;
   const Otz = window.Otz;
+  const ResourceSync = window.OraysaResources.create({ core: C, call: Otz.call, load: Otz.load, save: Otz.save });
+  let resourceStatus = { configured: false, downloadedCount: 0, lastSync: null, lastMessage: '', busy: false };
 
   const state = {
-    tab: ['day', 'month', 'lookup', 'bechinos', 'progress'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'day',
+    tab: ['day', 'month', 'lookup', 'bechinos', 'progress', 'resources'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'day',
     today: C.todayDn(),
     viewDn: C.todayDn(),
     month: null, // {y, m}
@@ -76,7 +78,7 @@
     const dn = state.viewDn;
     const plan = C.dayPlan(dn, state.settings);
     const isToday = dn === state.today;
-    let html = `<div class="card"><div class="day-nav">
+    let html = `<div class="oraysa-banner"><div class="oraysa-banner-main"><div class="oraysa-banner-word">ORAYSA</div><div class="oraysa-banner-sub">עמוד וחזרה</div><div class="oraysa-banner-note">סדר לימוד יומי · חזרה יומית ושבועית</div></div><div class="oraysa-banner-he">ללמוד · לחזור · לקנות</div></div><div class="card"><div class="day-nav">
       <button class="icon-btn" data-day="-1" title="היום הקודם" aria-label="היום הקודם">›</button>
       <div class="date-block">
         <div class="date-main">${esc(dateTitle(dn))}</div>
@@ -90,7 +92,7 @@
     } else if (plan.kind === 'after') {
       html += '<div class="card"><p class="muted">סיום הש״ס! אין עוד עמודים בלוח.</p></div>';
     } else if (plan.kind === 'learn') {
-      html += `<div class="card primary"><div class="card-title">שיעור היום</div>
+      html += `<div class="card primary"><div class="card-title">העמוד היומי</div>
         ${assignmentRow(plan.learn, `L:${plan.learn.idx}`, 'למדתי', 'סמן שלמדתי')}</div>`;
       if (plan.review) {
         html += `<div class="card"><div class="card-title">חזרה על עמוד אתמול</div>
@@ -132,7 +134,7 @@
       : state.settings.meforshim.map((m) => `<span class="chip">${esc(m)}</span>`).join(' ');
     const others = (weekly || []).filter((w) => w.idx !== a.idx);
     const siteBtn = (x) => `<button class="btn btn-outline" data-url="${esc(C.siteUrl(x))}">${C.hasSiteResources(x) ? '' : ''}${esc(C.shortLabel(x))}</button>`;
-    return `<div class="card"><div class="card-title">מפרשים וחומרי עזר</div>
+    return `<div class="card"><div class="card-title">משאבי לימוד</div>
       <div class="res-row">
         <div class="res-head">מפרשים באוצריא</div>
         <div class="chips">${mefChips}</div>
@@ -140,8 +142,8 @@
         <p class="muted">${mefState ? 'לחצו על מפרש כדי להוסיף או להסיר אותו מהטאב הפתוח.' : 'בחירת המפרשים — בהגדרות. אחרי הפתיחה יוצגו כאן כל המפרשים הזמינים.'}</p>
       </div>
       <div class="res-row">
-        <div class="res-head">מאתר אורייתא</div>
-        <p class="muted">מראי מקומות (פתגמי אורייתא), סיכומי אורייתא (שאלות ותשובות), צורת הדף עם פירוש, חידודי אורייתא (חידון יומי), זכרו, ושיעורי וידאו ואודיו.</p>
+        <div class="res-head">חומרי אורייתא לעמוד היומי</div>
+        <p class="muted">מראי מקומות רשמיים, סיכומי אורייתא, צורת הדף עם פירוש, חידודי אורייתא וחומרי PDF רשמיים נוספים.</p>
         <div class="actions wrap">
           <button class="btn btn-primary" data-url="${esc(C.siteUrl(a))}">חומרי העזר ל${esc(C.shortLabel(a))}</button>
           ${others.map(siteBtn).join('')}
@@ -357,13 +359,106 @@
     </div>`;
   }
 
+  // ── חומרי אורייתא והורדה לא מקוונת ──
+  function renderResources() {
+    const today = C.todayDn();
+    const weekStartDn = today - C.dowOf(today);
+    // Resource sync must display only an independently verified Oraysa week.
+    // Never show the projected linear calendar as if it were the official schedule.
+    const assignments = window.OraysaResources.weeklyAmudim(C, weekStartDn) || [];
+    const last = resourceStatus.lastSync ? new Date(resourceStatus.lastSync).toLocaleString('he-IL') : 'עדיין לא סונכרן';
+    const folder = resourceStatus.configured
+      ? '<p class="muted">תיקייה: ' + esc(resourceStatus.folderName || 'נבחרה') + '</p>'
+      : '<p class="muted">בחרו תיקייה פעם אחת. אוצריא תשמור בה את קובצי ה-PDF ותאפשר גישה קבועה גם בהפעלות הבאות.</p>';
+    content.innerHTML = '<div class="view">' +
+      '<div class="card"><div class="card-title">חומרי אורייתא — זמין גם בלי אינטרנט</div>' +
+      '<p class="muted">חומרי הלימוד הרשמיים של אורייתא לעמודי השבוע נשמרים כאן לשימוש גם ללא חיבור לאינטרנט. התוסף בודק פרסומים חדשים ומוריד קובצי PDF בלבד.</p>' +
+      folder +
+      '<div class="kv"><span>קבצים שנשמרו</span><b>' + resourceStatus.downloadedCount + '</b></div>' +
+      '<div class="kv"><span>סנכרון אחרון</span><span>' + esc(last) + '</span></div>' +
+      (resourceStatus.lastMessage ? '<p class="muted">' + esc(resourceStatus.lastMessage) + '</p>' : '') +
+      '<div class="actions wrap">' +
+      (resourceStatus.configured
+        ? '<button class="btn btn-primary" data-resource-sync' + (resourceStatus.busy ? ' disabled' : '') + '>סנכרן את השבוע</button><button class="btn btn-outline" data-resource-setup>החלף תיקייה</button>'
+        : '<button class="btn btn-primary" data-resource-setup>בחר תיקיית שמירה והפעל סנכרון</button>') +
+      '</div></div>' +
+      '<div class="card"><div class="card-title">הורדת חומר מיום קודם</div>' +
+      '<p class="muted">הורידו בנפרד משאבים רשמיים של עמוד שכבר נלמד. אין הורדה אוטומטית של ארכיון ישן.</p>' +
+      '<div class="actions wrap"><input id="resource-date" type="date" min="2020-01-05" max="' + C.isoOf(today - 1) + '" aria-label="תאריך לימוד קודם">' +
+      '<button class="btn btn-outline" data-resource-date' + (resourceStatus.busy ? ' disabled' : '') + '>מצא והורד משאבים</button></div></div>' +
+      '<div class="card"><div class="card-title">השבוע הנוכחי</div>' +
+      (assignments.length ? assignments.map((a) => {
+        const prior = (resourceStatus.lastResults || []).find((r) => r.amud === C.shortLabel(a));
+        let status = 'ייבדק אוטומטית';
+        if (prior && prior.error) status = 'שגיאה: ' + prior.error;
+        else if (prior && prior.unavailable) status = 'הקישור למסכת עדיין לא הוגדר';
+        else if (prior && !prior.resourceCount) status = 'טרם פורסם PDF';
+        else if (prior && prior.downloaded) status = prior.downloaded + ' קבצים חדשים נשמרו';
+        else if (prior && prior.resourceCount) status = prior.resourceCount + ' קבצים זמינים · ללא קובץ חדש';
+        return '<div class="assignment"><div class="amud-label">' + esc(C.longLabel(a)) + '</div><span class="muted">' + esc(status) + '</span></div>';
+      }).join('') : '<p class="muted">לוח אורייתא לשבוע זה עדיין לא אומת. לא מוצגים עמודים משוערים ולא תתבצע הורדה אוטומטית עד לאימות הלוח הרשמי.</p>') +
+      '</div></div>';
+  }
+
+  async function refreshResourceStatus() {
+    resourceStatus = ResourceSync.snapshot();
+    if (state.tab === 'resources') render();
+  }
+  async function setupResourceFolder() {
+    const result = await ResourceSync.chooseFolder();
+    if (!result.ok) {
+      if (!result.cancelled) say(result.message || 'לא ניתן לבחור תיקייה.', 'error');
+      return;
+    }
+    resourceStatus = ResourceSync.snapshot();
+    say('תיקיית השמירה אושרה. מתחיל סנכרון של השבוע הנוכחי.');
+    await syncCurrentResources();
+  }
+  async function syncCurrentResources() {
+    resourceStatus.busy = true;
+    if (state.tab === 'resources') render();
+    let result;
+    try {
+      result = await ResourceSync.syncWeek();
+    } catch (e) {
+      result = { ok: false, message: e && e.message ? e.message : 'הסנכרון נכשל.' };
+    }
+    resourceStatus = ResourceSync.snapshot();
+    if (result.ok) say(result.state.lastMessage || 'בדיקת המשאבים הסתיימה.');
+    else say(result.message || 'הסנכרון לא הושלם.', 'error');
+    render();
+  }
+  async function syncPreviousDate() {
+    if (!resourceStatus.configured) { await setupResourceFolder(); return; }
+    resourceStatus.busy = true;
+    if (state.tab === 'resources') render();
+    const input = $('#resource-date');
+    if (!input || !input.value) { resourceStatus = ResourceSync.snapshot(); say('בחרו תאריך קודם.', 'error'); render(); return; }
+    let result;
+    try {
+      result = await ResourceSync.syncDate(input.value);
+    } catch (e) {
+      result = { ok: false, message: e && e.message ? e.message : 'הורדת המשאבים נכשלה.' };
+    }
+    resourceStatus = ResourceSync.snapshot();
+    if (result.ok) say(result.downloaded
+      ? result.downloaded + ' קבצים חדשים נשמרו.'
+      : (result.results && result.results.length && result.results.every((r) => !r.error && !r.resources.length)
+        ? 'לא נמצאו כרגע קובצי PDF בעמודים שנבדקו.'
+        : (result.results && result.results.some((r) => r.error)
+          ? 'הבדיקה הסתיימה עם שגיאה בחלק מהעמודים.'
+          : 'לא נמצאו קבצים חדשים; הקבצים הקיימים נשמרו.')));
+    else say(result.message || 'לא ניתן להוריד את המשאבים.', 'error');
+    render();
+  }
+
   // ── ניתוב ──
   function render() {
     state.today = C.todayDn();
     document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === state.tab));
     const t = C.learningIndexOn(state.today);
-    $('#topbar-sub').textContent = t != null ? `היום: ${C.shortLabel(C.amudAt(t))}` : 'היום: חזרה שבועית';
-    ({ day: renderDay, month: renderMonth, lookup: renderLookup, bechinos: renderBechinos, progress: renderProgress })[state.tab]();
+    $('#topbar-sub').textContent = t != null ? `העמוד היומי · ${C.shortLabel(C.amudAt(t))}` : 'חזרה שבועית';
+    ({ day: renderDay, month: renderMonth, lookup: renderLookup, bechinos: renderBechinos, progress: renderProgress, resources: renderResources })[state.tab]();
   }
 
   function toast(msg) {
@@ -404,6 +499,9 @@
     if (!el) return;
     const d = el.dataset;
     if (d.tab) { state.tab = d.tab; render(); content.scrollTop = 0; }
+    else if (d.resourceSetup) setupResourceFolder();
+    else if (d.resourceSync) syncCurrentResources();
+    else if (d.resourceDate) syncPreviousDate();
     else if (d.toggle) toggle(d.toggle);
     else if (d.open) openIdx(parseInt(d.open, 10));
     else if (d.url) Otz.openUrl(d.url);
@@ -469,6 +567,31 @@
     const [settings, checks] = await Promise.all([Otz.load('settings'), Otz.load('checks')]);
     if (settings) Object.assign(state.settings, settings);
     if (checks && typeof checks === 'object') state.checks = checks;
+    await ResourceSync.initialize();
+    resourceStatus = ResourceSync.snapshot();
     render();
+    if (resourceStatus.configured) {
+      ResourceSync.autoSync().then(() => {
+        resourceStatus = ResourceSync.snapshot();
+        if (state.tab === 'resources') render();
+      }).catch(() => {});
+    }
+  });
+
+  // If the plugin stays open, re-check newly published PDFs every six hours.
+  setInterval(() => {
+    if (!resourceStatus.configured) return;
+    ResourceSync.autoSync().then(() => {
+      resourceStatus = ResourceSync.snapshot();
+      if (state.tab === 'resources') render();
+    }).catch(() => {});
+  }, 6 * 60 * 60 * 1000);
+
+  window.addEventListener('online', () => {
+    if (!resourceStatus.configured) return;
+    ResourceSync.autoSync().then(() => {
+      resourceStatus = ResourceSync.snapshot();
+      if (state.tab === 'resources') render();
+    }).catch(() => {});
   });
 })();
