@@ -362,12 +362,10 @@
   // ── חומרי אורייתא והורדה לא מקוונת ──
   function renderResources() {
     const today = C.todayDn();
-    const startIdx = C.weekStartIndex(today);
-    const assignments = [];
-    for (let i = 0; i < 5; i++) {
-      const a = C.amudAt(startIdx + i);
-      if (a) assignments.push(a);
-    }
+    const weekStartDn = today - C.dowOf(today);
+    // Resource sync must display only an independently verified Oraysa week.
+    // Never show the projected linear calendar as if it were the official schedule.
+    const assignments = window.OraysaResources.weeklyAmudim(C, weekStartDn) || [];
     const last = resourceStatus.lastSync ? new Date(resourceStatus.lastSync).toLocaleString('he-IL') : 'עדיין לא סונכרן';
     const folder = resourceStatus.configured
       ? '<p class="muted">תיקייה: ' + esc(resourceStatus.folderName || 'נבחרה') + '</p>'
@@ -389,7 +387,7 @@
       '<div class="actions wrap"><input id="resource-date" type="date" min="2020-01-05" max="' + C.isoOf(today - 1) + '" aria-label="תאריך לימוד קודם">' +
       '<button class="btn btn-outline" data-resource-date' + (resourceStatus.busy ? ' disabled' : '') + '>מצא והורד משאבים</button></div></div>' +
       '<div class="card"><div class="card-title">השבוע הנוכחי</div>' +
-      assignments.map((a) => {
+      (assignments.length ? assignments.map((a) => {
         const prior = (resourceStatus.lastResults || []).find((r) => r.amud === C.shortLabel(a));
         let status = 'ייבדק אוטומטית';
         if (prior && prior.error) status = 'שגיאה: ' + prior.error;
@@ -398,7 +396,7 @@
         else if (prior && prior.downloaded) status = prior.downloaded + ' קבצים חדשים נשמרו';
         else if (prior && prior.resourceCount) status = prior.resourceCount + ' קבצים זמינים · ללא קובץ חדש';
         return '<div class="assignment"><div class="amud-label">' + esc(C.longLabel(a)) + '</div><span class="muted">' + esc(status) + '</span></div>';
-      }).join('') +
+      }).join('') : '<p class="muted">לוח אורייתא לשבוע זה עדיין לא אומת. לא מוצגים עמודים משוערים ולא תתבצע הורדה אוטומטית עד לאימות הלוח הרשמי.</p>') +
       '</div></div>';
   }
 
@@ -419,7 +417,12 @@
   async function syncCurrentResources() {
     resourceStatus.busy = true;
     if (state.tab === 'resources') render();
-    const result = await ResourceSync.syncWeek();
+    let result;
+    try {
+      result = await ResourceSync.syncWeek();
+    } catch (e) {
+      result = { ok: false, message: e && e.message ? e.message : 'הסנכרון נכשל.' };
+    }
     resourceStatus = ResourceSync.snapshot();
     if (result.ok) say(result.state.lastMessage || 'בדיקת המשאבים הסתיימה.');
     else say(result.message || 'הסנכרון לא הושלם.', 'error');
@@ -431,7 +434,12 @@
     if (state.tab === 'resources') render();
     const input = $('#resource-date');
     if (!input || !input.value) { resourceStatus = ResourceSync.snapshot(); say('בחרו תאריך קודם.', 'error'); render(); return; }
-    const result = await ResourceSync.syncDate(input.value);
+    let result;
+    try {
+      result = await ResourceSync.syncDate(input.value);
+    } catch (e) {
+      result = { ok: false, message: e && e.message ? e.message : 'הורדת המשאבים נכשלה.' };
+    }
     resourceStatus = ResourceSync.snapshot();
     if (result.ok) say(result.downloaded
       ? result.downloaded + ' קבצים חדשים נשמרו.'
