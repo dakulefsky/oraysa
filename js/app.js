@@ -78,7 +78,7 @@
     const dn = state.viewDn;
     const plan = C.dayPlan(dn, state.settings);
     const isToday = dn === state.today;
-    let html = `<div class="oraysa-banner"><div class="oraysa-banner-main"><div class="oraysa-banner-word">ORAYSA</div><div class="oraysa-banner-sub">THE AMUD &amp; CHAZARAH INITIATIVE</div><div class="oraysa-banner-note">A daily seder of learning and chazarah</div></div><div class="oraysa-banner-he">ללמוד · לחזור · לקנות</div></div><div class="card"><div class="day-nav">
+    let html = `<div class="oraysa-banner"><div class="oraysa-banner-main"><div class="oraysa-banner-word">ORAYSA</div><div class="oraysa-banner-sub">עמוד וחזרה</div><div class="oraysa-banner-note">סדר לימוד יומי · חזרה יומית ושבועית</div></div><div class="oraysa-banner-he">ללמוד · לחזור · לקנות</div></div><div class="card"><div class="day-nav">
       <button class="icon-btn" data-day="-1" title="היום הקודם" aria-label="היום הקודם">›</button>
       <div class="date-block">
         <div class="date-main">${esc(dateTitle(dn))}</div>
