@@ -171,6 +171,34 @@
     </div>`;
   }
 
+  const ORAYSA_S3_DOCUMENTS = [
+    { title: 'בחינת מגילה ג׳–תענית ב׳', detail: 'מסמך בחינה רשמי', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Megilah-3B-28-Taanis-2.pdf' },
+    { title: 'בחינת מועד קטן א׳ (דפים ג׳–ח׳) — English', detail: 'מסמך בחינה רשמי באנגלית', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Moed-Katan-1A-3-8-English.pdf' },
+    { title: 'בחינת סוכה ה׳ (דפים מ״ב–מ״ז) — English', detail: 'מסמך בחינה רשמי באנגלית', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Sukkah-5A-42-47-English.pdf' },
+    { title: 'תשובות — מועד קטן א׳ (דפים ג׳–ח׳)', detail: 'תשובות למסמך בחינה רשמי', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Moed-Katan-1A-3-8-Answers.pdf' }
+  ];
+
+  async function fetchOraysaDocument(index) {
+    const doc = ORAYSA_S3_DOCUMENTS[index];
+    if (!doc) return;
+    const button = Array.from(document.querySelectorAll('[data-fetch-doc]')).find((b) => Number(b.dataset.fetchDoc) === index);
+    if (button) { button.disabled = true; button.textContent = 'מוריד…'; }
+    try {
+      if (!Otz.HAS_OTZ) { await Otz.openUrl(doc.url); return; }
+      const result = await Otz.fetchRemoteFile(doc.url, 25 * 1024 * 1024, 60000);
+      if (!result || !result.success || !result.data || !result.data.url) {
+        await say(result && result.error && result.error.message ? result.error.message : 'ההורדה נכשלה', 'error');
+        return;
+      }
+      await Otz.openUrl(result.data.url);
+      await say('המסמך ירד למטמון הזמני ונפתח. לשמירה קבועה השתמשו באפשרות השמירה של מציג ה-PDF.', 'success');
+    } catch (error) {
+      await say(error && error.message ? error.message : 'לא ניתן להוריד את המסמך', 'error');
+    } finally {
+      if (button) { button.disabled = false; button.textContent = 'הורד ופתח'; }
+    }
+  }
+
   function renderBechinos() {
     const parity = state.settings.bechinaParity;
     const upcoming = C.nextBechinaDays(state.today, parity, 6);
@@ -185,6 +213,16 @@
           <button class="btn btn-outline" data-url="${esc(C.SITE)}/en/faqs">שאלות נפוצות</button>
         </div>
         <p class="muted">מועד הבחינות מחושב בתוסף; אם אינו תואם ללוח של אורייתא — החליפו בהגדרות.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">מסמכים רשמיים ממאגר אורייתא</div>
+        <p class="muted">קבצים רשמיים שכבר זוהו במאגר ה-S3 של אורייתא. זו רשימה חלקית וקבועה — היא אינה מתעדכנת אוטומטית ואינה כוללת עדיין את חומרי העזר היומיים לפי העמוד.</p>
+        <div class="media-doc-list">
+          ${ORAYSA_S3_DOCUMENTS.map((doc, i) => `<div class="media-doc-row">
+            <div class="media-doc-copy"><strong>${esc(doc.title)}</strong><span class="muted">${esc(doc.detail)}</span></div>
+            <button class="btn btn-outline" data-fetch-doc="${i}">הורד ופתח</button>
+          </div>`).join('')}
+        </div>
       </div>
       <h3 class="section-title">הבחינות הקרובות</h3>
       ${upcoming.map((dn) => bechinaCard(dn, false)).join('')}
@@ -407,6 +445,7 @@
     else if (d.toggle) toggle(d.toggle);
     else if (d.open) openIdx(parseInt(d.open, 10));
     else if (d.url) Otz.openUrl(d.url);
+    else if (d.fetchDoc !== undefined) fetchOraysaDocument(parseInt(d.fetchDoc, 10));
     else if (d.mefToggle) toggleMef(d.mefToggle);
     else if (d.day) { state.viewDn += parseInt(d.day, 10); render(); }
     else if (d.gotoToday !== undefined) { state.viewDn = state.today; render(); }
