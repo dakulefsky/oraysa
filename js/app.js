@@ -137,8 +137,9 @@
       ? mefState.available.map((t) => `<button class="chip-btn${mefState.active.includes(t) ? ' on' : ''}" data-mef-toggle="${esc(t)}">${esc(t)}</button>`).join('')
       : state.settings.meforshim.map((m) => `<span class="chip">${esc(m)}</span>`).join(' ');
     const others = (weekly || []).filter((w) => w.idx !== a.idx);
-    const siteBtn = (x) => `<button class="btn btn-outline" data-url="${esc(C.siteUrl(x))}">${C.hasSiteResources(x) ? '' : ''}${esc(C.shortLabel(x))}</button>`;
-    return `<div class="card"><div class="card-title">מפרשים וחומרי עזר</div>
+    const siteBtn = (x) => `<button class="btn btn-outline" data-url="${esc(C.siteUrl(x))}">${esc(C.shortLabel(x))}</button>`;
+    const amudUrl = C.siteUrl(a);
+    return `<div class="card"><div class="card-title">מפרשים וחומרי אורייתא הרשמיים</div>
       <div class="res-row">
         <div class="res-head">מפרשים באוצריא</div>
         <div class="chips">${mefChips}</div>
@@ -146,14 +147,23 @@
         <p class="muted">${mefState ? 'לחצו על מפרש כדי להוסיף או להסיר אותו מהטאב הפתוח.' : 'בחירת המפרשים — בהגדרות. אחרי הפתיחה יוצגו כאן כל המפרשים הזמינים.'}</p>
       </div>
       <div class="res-row">
-        <div class="res-head">מאתר אורייתא</div>
-        <p class="muted">מראי מקומות (פתגמי אורייתא), סיכומי אורייתא (שאלות ותשובות), צורת הדף עם פירוש, חידודי אורייתא (חידון יומי), זכרו, ושיעורי וידאו ואודיו.</p>
-        <div class="actions wrap">
-          <button class="btn btn-primary" data-url="${esc(C.siteUrl(a))}">חומרי העזר ל${esc(C.shortLabel(a))}</button>
-          ${others.map(siteBtn).join('')}
-        </div>
-        ${C.hasSiteResources(a) ? '' : '<p class="muted">לעמוד זה אין עדיין קישור ישיר בתוסף — ייפתח דף הבית של אורייתא.</p>'}
+        <div class="res-head">חומרי PDF לעמוד</div>
+        <p class="muted">מראי מקומות, סיכומי אורייתא, צורת הדף והערות עיון — בהתאם לחומרים שאורייתא פרסמה לעמוד הזה.</p>
+        <div class="actions"><button class="btn btn-primary" data-url="${esc(amudUrl)}">פתח חומרי PDF ל${esc(C.shortLabel(a))}</button></div>
       </div>
+      <div class="res-row">
+        <div class="res-head">שיעורי וידאו ואודיו</div>
+        <p class="muted">האתר הרשמי מאפשר לבחור מגיד שיעור, מסכת ועמוד, ולהציג שיעורי Video/Audio זמינים.</p>
+        <div class="actions wrap">
+          <button class="btn btn-primary" data-url="${esc(amudUrl)}">פתח שיעורים ל${esc(C.shortLabel(a))}</button>
+          <button class="btn btn-outline" data-url="${esc(C.SITE_LECTURERS)}">כל מגידי השיעור</button>
+        </div>
+      </div>
+      ${others.length ? `<div class="res-row">
+        <div class="res-head">עמודים נוספים לחזרה השבועית</div>
+        <div class="actions wrap">${others.map(siteBtn).join('')}</div>
+      </div>` : ''}
+      <p class="muted">הקישורים פותחים את המקור הרשמי של אורייתא. הזמינות משתנה לפי העמוד והמגיד; התוסף אינו יוצר או משלים חומרי לימוד.</p>
     </div>`;
   }
 
@@ -210,7 +220,7 @@
   function createDiscoveredDocument(candidate, bechina, matchedLabel, dateDn) {
     const isAnswers = candidate.kind === 'answers';
     const title = (isAnswers ? 'תשובות לבחינה' : 'בחינה') +
-      ' ' + bechina.to.masechet + ' #' + label +
+      ' ' + bechina.to.masechet + ' #' + matchedLabel +
       (candidate.language === 'English' ? ' — English' : '');
     return {
       title,
