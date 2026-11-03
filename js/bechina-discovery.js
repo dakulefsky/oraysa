@@ -39,7 +39,7 @@
       (number + 1) + side,
       (number + 1) + other
     ];
-    return [...new Set(raw.filter((value) => /^\\d+[AB]$/.test(value)))];
+    return [...new Set(raw.filter((value) => /^[0-9]+[AB]$/.test(value)))];
   }
 
   function sequenceDaf(bechina, segments) {
