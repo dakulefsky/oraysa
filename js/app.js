@@ -2,6 +2,7 @@
   'use strict';
   const C = window.OraysaCore;
   const Otz = window.Otz;
+  const BechinaDiscovery = window.OraysaBechinaDiscovery;
 
   const state = {
     tab: ['day', 'month', 'lookup', 'bechinos', 'progress'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'day',
@@ -12,6 +13,11 @@
     settings: { review30: false, review90: false, shabbos2w: false, bechinaParity: 1, meforshim: ['רש״י', 'תוספות'] },
     mef: null, // מצב המפרשים בטאב הקריאה שנפתח אחרון: { idx, available, active }
     checks: {}, // key -> dn שבו סומן
+    bechinaCache: {},
+    bechinaDocs: [],
+    bechinaScanKey: '',
+    bechinaLoading: false,
+    bechinaScanMessage: ''
   };
 
   const $ = (sel, root) => (root || document).querySelector(sel);
@@ -171,15 +177,158 @@
     </div>`;
   }
 
-  const ORAYSA_S3_DOCUMENTS = [
-    { title: 'בחינת מגילה ג׳–תענית ב׳', detail: 'מסמך בחינה רשמי', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Megilah-3B-28-Taanis-2.pdf' },
-    { title: 'בחינת מועד קטן א׳ (דפים ג׳–ח׳) — English', detail: 'מסמך בחינה רשמי באנגלית', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Moed-Katan-1A-3-8-English.pdf' },
-    { title: 'בחינת סוכה ה׳ (דפים מ״ב–מ״ז) — English', detail: 'מסמך בחינה רשמי באנגלית', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Sukkah-5A-42-47-English.pdf' },
-    { title: 'תשובות — מועד קטן א׳ (דפים ג׳–ח׳)', detail: 'תשובות למסמך בחינה רשמי', url: 'https://oraysa-media.s3.amazonaws.com/oraysa/Oraysa-bechina-Moed-Katan-1A-3-8-Answers.pdf' }
-  ];
+  const ORAYSA_MEDIA_BASE = 'https://oraysa-media.s3.amazonaws.com/oraysa/';
+  const BECHINA_DISCOVERY_CACHE_KEY = 'bechinaDiscoveryV2';
+  let bechinaDiscoveryPromise = null;
+
+  function bechinaDiscoveryWindows() {
+    const parity = Number(state.settings.bechinaParity);
+    const windows = [];
+    const upcoming = C.nextBechinaDays(state.today, parity, 1)[0];
+    if (upcoming != null) {
+      const bechina = C.bechinaFor(upcoming);
+      if (bechina) windows.push({ dn: upcoming, bechina });
+    }
+
+    let previous = state.today - C.dowOf(state.today);
+    for (let guard = 0; guard < 8 && previous >= state.today - 60; guard++, previous -= 7) {
+      if (!C.isBechinaDay(previous, parity)) continue;
+      if (!windows.some((item) => item.dn === previous)) {
+        const bechina = C.bechinaFor(previous);
+        if (bechina) windows.push({ dn: previous, bechina });
+      }
+      break;
+    }
+    return windows;
+  }
+
+  function bechinaRangeKey(bechina) {
+    return bechina.from.idx + ':' + bechina.to.idx;
+  }
+
+  function createDiscoveredDocument(candidate, bechina, label, dateDn) {
+    const isAnswers = candidate.kind === 'answers';
+    const title = (isAnswers ? 'תשובות לבחינה' : 'בחינה') +
+      ' ' + bechina.from.masechet + ' #' + label +
+      (candidate.language === 'English' ? ' — English' : '');
+    return {
+      title,
+      detail: C.shortLabel(bechina.from) + ' – ' + C.shortLabel(bechina.to) +
+        ' · ' + C.gregText(dateDn),
+      url: ORAYSA_MEDIA_BASE + candidate.path,
+      kind: candidate.kind,
+      language: candidate.language,
+      rangeKey: bechinaRangeKey(bechina),
+      dateDn
+    };
+  }
+
+  async function scanBechinaRange(bechina, dateDn) {
+    const labels = BechinaDiscovery.labelCandidates(bechina.from.daf);
+    for (const label of labels) {
+      const testCandidates = BechinaDiscovery.filenameCandidates(bechina, label, 'test');
+      const testChecks = await Promise.all(testCandidates.map((candidate) =>
+        Otz.probeRemoteFile(ORAYSA_MEDIA_BASE + candidate.path, 12000)
+      ));
+      const matches = testCandidates.filter((candidate, index) => testChecks[index] && testChecks[index].ok);
+      if (!matches.length) continue;
+
+      const docs = [];
+      const seen = new Set();
+      for (const candidate of matches) {
+        const identity = candidate.kind + ':' + candidate.language;
+        if (seen.has(identity)) continue;
+        seen.add(identity);
+        docs.push(createDiscoveredDocument(candidate, bechina, label, dateDn));
+      }
+
+      const answerCandidates = BechinaDiscovery.filenameCandidates(bechina, label, 'answers');
+      const answerChecks = await Promise.all(answerCandidates.map((candidate) =>
+        Otz.probeRemoteFile(ORAYSA_MEDIA_BASE + candidate.path, 12000)
+      ));
+      for (let i = 0; i < answerCandidates.length; i++) {
+        if (!answerChecks[i] || !answerChecks[i].ok) continue;
+        const identity = answerCandidates[i].kind + ':' + answerCandidates[i].language;
+        if (seen.has(identity)) continue;
+        seen.add(identity);
+        docs.push(createDiscoveredDocument(answerCandidates[i], bechina, label, dateDn));
+      }
+      return docs;
+    }
+    return [];
+  }
+
+  async function discoverOraysaDocuments(force) {
+    if (!Otz.HAS_OTZ) {
+      state.bechinaScanMessage = 'הגילוי האוטומטי זמין בתוך אוצריא בלבד.';
+      return;
+    }
+    if (bechinaDiscoveryPromise) return bechinaDiscoveryPromise;
+
+    const windows = bechinaDiscoveryWindows();
+    const scanKey = windows.map((item) => bechinaRangeKey(item.bechina)).join('|');
+    if (!scanKey) {
+      state.bechinaScanMessage = 'אין כרגע טווח בחינה שאפשר לבדוק.';
+      return;
+    }
+    if (!force && state.bechinaScanKey === scanKey) return;
+
+    state.bechinaScanKey = scanKey;
+    state.bechinaLoading = true;
+    state.bechinaScanMessage = 'בודק שמות קבצים אפשריים במאגר הרשמי של אורייתא…';
+    if (state.tab === 'bechinos') renderBechinos();
+
+    bechinaDiscoveryPromise = (async () => {
+      const cache = state.bechinaCache && typeof state.bechinaCache === 'object'
+        ? state.bechinaCache
+        : {};
+      let foundDocs = [];
+      let foundRange = null;
+      const maxAge = 12 * 60 * 60 * 1000;
+
+      for (const item of windows) {
+        const key = bechinaRangeKey(item.bechina);
+        const previous = cache[key];
+        if (!force && previous && Date.now() - previous.scannedAt < maxAge) {
+          if (Array.isArray(previous.docs) && previous.docs.length) {
+            foundDocs = previous.docs;
+            foundRange = item;
+            break;
+          }
+          continue;
+        }
+
+        const docs = await scanBechinaRange(item.bechina, item.dn);
+        cache[key] = { scannedAt: Date.now(), docs };
+        if (docs.length) {
+          foundDocs = docs;
+          foundRange = item;
+          break;
+        }
+      }
+
+      state.bechinaCache = cache;
+      state.bechinaDocs = foundDocs;
+      state.bechinaLoading = false;
+      state.bechinaScanMessage = foundDocs.length
+        ? 'נמצאו ' + foundDocs.length + ' קבצים רשמיים תואמים.'
+        : 'לא נמצא PDF תואם לשמות שנבדקו בטווח הבחינה האחרון. אפשר לפתוח את רשימת הטפסים הרשמית באתר אורייתא.';
+      await Otz.save(BECHINA_DISCOVERY_CACHE_KEY, cache);
+      bechinaDiscoveryPromise = null;
+      if (state.tab === 'bechinos') renderBechinos();
+      return foundRange;
+    })().catch(async (error) => {
+      state.bechinaLoading = false;
+      state.bechinaScanMessage = 'בדיקת המאגר נכשלה: ' +
+        (error && error.message ? error.message : 'שגיאת רשת');
+      bechinaDiscoveryPromise = null;
+      if (state.tab === 'bechinos') renderBechinos();
+    });
+    return bechinaDiscoveryPromise;
+  }
 
   async function fetchOraysaDocument(index) {
-    const doc = ORAYSA_S3_DOCUMENTS[index];
+    const doc = state.bechinaDocs[index];
     if (!doc) return;
     const button = Array.from(document.querySelectorAll('[data-fetch-doc]')).find((b) => Number(b.dataset.fetchDoc) === index);
     if (button) { button.disabled = true; button.textContent = 'מוריד…'; }
@@ -215,13 +364,23 @@
         <p class="muted">מועד הבחינות מחושב בתוסף; אם אינו תואם ללוח של אורייתא — החליפו בהגדרות.</p>
       </div>
       <div class="card">
-        <div class="card-title">מסמכים רשמיים ממאגר אורייתא</div>
-        <p class="muted">קבצים רשמיים שכבר זוהו במאגר ה-S3 של אורייתא. זו רשימה חלקית וקבועה — היא אינה מתעדכנת אוטומטית ואינה כוללת עדיין את חומרי העזר היומיים לפי העמוד.</p>
-        <div class="media-doc-list">
-          ${ORAYSA_S3_DOCUMENTS.map((doc, i) => `<div class="media-doc-row">
+        <div class="card-title">הטפסים העדכניים ממאגר אורייתא</div>
+        <p class="muted">התוסף מנסה לאתר את קובצי הבחינה הרשמיים לפי דפוסי שמות הקבצים של אורייתא. הוא בודק את הקישורים מול שרת S3 בלי להוריד את ה-PDF עד שתבחרו לפתוח אותו.</p>
+        ${(() => {
+          const windows = bechinaDiscoveryWindows();
+          const target = windows[0] && windows[0].bechina;
+          return target ? `<p class="muted">טווח שנבדק: ${esc(C.shortLabel(target.from))} – ${esc(C.shortLabel(target.to))}</p>` : '';
+        })()}
+        ${state.bechinaLoading ? '<p class="muted">בודק קבצים אפשריים…</p>' : ''}
+        ${state.bechinaDocs.length ? `<div class="media-doc-list">
+          ${state.bechinaDocs.map((doc, i) => `<div class="media-doc-row">
             <div class="media-doc-copy"><strong>${esc(doc.title)}</strong><span class="muted">${esc(doc.detail)}</span></div>
             <button class="btn btn-outline" data-fetch-doc="${i}">הורד ופתח</button>
           </div>`).join('')}
+        </div>` : `<p class="muted">${esc(state.bechinaScanMessage || 'הבדיקה האוטומטית תתחיל עם פתיחת הטאב.')}</p>`}
+        <div class="actions">
+          <button class="btn btn-outline" data-refresh-discovery="1">${state.bechinaLoading ? 'בדיקה מתבצעת…' : 'בדוק שוב'}</button>
+          <button class="btn btn-text" data-url="${esc(C.SITE)}/quizzes">רשימת הבחינות באתר אורייתא</button>
         </div>
       </div>
       <h3 class="section-title">הבחינות הקרובות</h3>
@@ -446,6 +605,7 @@
     else if (d.open) openIdx(parseInt(d.open, 10));
     else if (d.url) Otz.openUrl(d.url);
     else if (d.fetchDoc !== undefined) fetchOraysaDocument(parseInt(d.fetchDoc, 10));
+    else if (d.refreshDiscovery !== undefined) discoverOraysaDocuments(true);
     else if (d.mefToggle) toggleMef(d.mefToggle);
     else if (d.day) { state.viewDn += parseInt(d.day, 10); render(); }
     else if (d.gotoToday !== undefined) { state.viewDn = state.today; render(); }
@@ -505,9 +665,12 @@
   }, 60000);
 
   Otz.boot(async () => {
-    const [settings, checks] = await Promise.all([Otz.load('settings'), Otz.load('checks')]);
+    const [settings, checks, bechinaCache] = await Promise.all([
+      Otz.load('settings'), Otz.load('checks'), Otz.load(BECHINA_DISCOVERY_CACHE_KEY)
+    ]);
     if (settings) Object.assign(state.settings, settings);
     if (checks && typeof checks === 'object') state.checks = checks;
+    if (bechinaCache && typeof bechinaCache === 'object') state.bechinaCache = bechinaCache;
     render();
   });
 })();
