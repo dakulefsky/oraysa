@@ -3,51 +3,64 @@ const assert = require('node:assert/strict');
 const C = require('../js/core.js');
 const D = require('../js/bechina-discovery.js');
 
-test('filename label heuristic matches known Oraysa sequences', () => {
-  assert.equal(D.labelCandidates(35)[0], '4B');
-  assert.equal(D.labelCandidates(100)[0], '11A');
-  assert.equal(D.labelCandidates(105)[0], '11B');
-  assert.ok(D.labelCandidates(21).includes('2B'));
+test('predicts observed Oraysa sequence labels', () => {
+  assert.deepEqual(D.labelCandidates(3), ['1A']);
+  assert.deepEqual(D.labelCandidates(28), ['3B']);
+  assert.deepEqual(D.labelCandidates(35), ['4B']);
+  assert.deepEqual(D.labelCandidates(42), ['5A']);
 });
 
-test('builds the observed single-masechta hyphenated filename', () => {
+test('builds the observed single-masechta Yevamos filename', () => {
   const bechina = {
-    from: { masechet: 'יבמות', daf: 35, amud: 0 },
-    to: { masechet: 'יבמות', daf: 39, amud: 1 }
+    segments: [{ masechet: 'יבמות', startDaf: 35, endDaf: 40 }]
   };
   const names = D.filenameCandidates(bechina, '4B', 'test');
   assert.ok(names.some((x) => x.path === 'Oraysa-bechina-Yevamos-4B-35-40.pdf'));
 });
 
-test('supports Oraysa underscore and English naming conventions', () => {
+test('supports the observed underscore and English naming convention', () => {
   const bechina = {
-    from: { masechet: 'פסחים', daf: 42, amud: 0 },
-    to: { masechet: 'פסחים', daf: 46, amud: 1 }
+    segments: [{ masechet: 'פסחים', startDaf: 42, endDaf: 47 }]
   };
   const names = D.filenameCandidates(bechina, '5A', 'test');
   assert.ok(names.some((x) => x.path === 'Oraysa_bechina_Pesachim_5A_42_47_English.pdf'));
 });
 
-test('supports a test spanning two masechtos', () => {
+test('builds the observed cross-masechta naming convention', () => {
   const bechina = {
-    from: { masechet: 'מגילה', daf: 28, amud: 0 },
-    to: { masechet: 'תענית', daf: 1, amud: 1 }
+    segments: [
+      { masechet: 'חגיגה', startDaf: 26, endDaf: 27 },
+      { masechet: 'יבמות', startDaf: 2, endDaf: 5 }
+    ]
+  };
+  const names = D.filenameCandidates(bechina, '1A', 'test');
+  assert.ok(names.some((x) =>
+    x.path === 'Oraysa-bechina-Yevamos-1A-Chagiga-26-27-Yevamos-2-5.pdf'
+  ));
+});
+
+test('retains the earlier compact cross-masechta filename variant', () => {
+  const bechina = {
+    segments: [
+      { masechet: 'מגילה', startDaf: 28, endDaf: 28 },
+      { masechet: 'תענית', startDaf: 2, endDaf: 2 }
+    ]
   };
   const names = D.filenameCandidates(bechina, '3B', 'test');
-  assert.ok(names.some((x) => x.path === 'Oraysa-bechina-Megilah-3B-28-Taanis-2.pdf'));
+  assert.ok(names.some((x) =>
+    x.path === 'Oraysa-bechina-Megilah-3B-28-Taanis-2.pdf'
+  ));
 });
 
 test('generates a separate official answer-sheet filename', () => {
   const bechina = {
-    from: { masechet: 'מועד קטן', daf: 3, amud: 0 },
-    to: { masechet: 'מועד קטן', daf: 7, amud: 1 }
+    segments: [{ masechet: 'מועד קטן', startDaf: 3, endDaf: 8 }]
   };
   const names = D.filenameCandidates(bechina, '1A', 'answers');
   assert.ok(names.some((x) => x.path === 'Oraysa-bechina-Moed-Katan-1A-3-8-Answers.pdf'));
 });
 
-test('every catalogued masechta has a filename slug', () => {
-  for (const masechet of C.MASECHTOS) {
-    assert.ok(D.SLUGS[masechet.name], `Missing slug for ${masechet.name}`);
-  }
+test('rejects invalid or unknown segments instead of guessing a URL', () => {
+  assert.deepEqual(D.filenameCandidates({ segments: [{ masechet: 'מסכת לא ידועה', startDaf: 2, endDaf: 6 }] }, '1A'), []);
+  assert.deepEqual(D.filenameCandidates({ segments: [{ masechet: 'יבמות', startDaf: 6, endDaf: 2 }] }, '1A'), []);
 });
