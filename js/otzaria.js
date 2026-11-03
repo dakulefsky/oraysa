@@ -187,6 +187,11 @@
     return !!(r && r.success && r.data);
   }
 
+  /** הורדת PDF ממקור שאושר במניפסט התוסף וברשימת הרשת של אוצריא. */
+  async function fetchRemoteFile(url, maxBytes, timeoutMs) {
+    return call('network.fetchFile', { url, maxBytes: maxBytes || 25 * 1024 * 1024, timeoutMs: timeoutMs || 60000 });
+  }
+
   /** חגים ופרשה מאוצריא (null מחוץ לאוצריא או בכשל). */
   async function jewishDateInfo(iso) {
     const r = await call('calendar.getJewishDate', { date: iso });
@@ -199,5 +204,5 @@
     return !!(r && r.success);
   }
 
-  window.Otz = { HAS_OTZ, call, load, save, boot, openAmud, jewishDateInfo, notify, openUrl, getCommentators, applyCommentators, toggleCommentator };
+  window.Otz = { HAS_OTZ, call, load, save, boot, openAmud, jewishDateInfo, notify, openUrl, fetchRemoteFile, getCommentators, applyCommentators, toggleCommentator };
 })();
