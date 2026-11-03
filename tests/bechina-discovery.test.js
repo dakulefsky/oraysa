@@ -1,6 +1,5 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const C = require('../js/core.js');
 const D = require('../js/bechina-discovery.js');
 
 test('predicts observed Oraysa sequence labels', () => {
