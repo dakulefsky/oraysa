@@ -139,6 +139,7 @@
     const others = (weekly || []).filter((w) => w.idx !== a.idx);
     const siteBtn = (x) => `<button class="btn btn-outline" data-url="${esc(C.siteUrl(x))}">${esc(C.shortLabel(x))}</button>`;
     const amudUrl = C.siteUrl(a);
+    const hasDirectAmudLink = C.hasSiteResources(a);
     return `<div class="card"><div class="card-title">מפרשים וחומרי אורייתא הרשמיים</div>
       <div class="res-row">
         <div class="res-head">מפרשים באוצריא</div>
@@ -147,23 +148,19 @@
         <p class="muted">${mefState ? 'לחצו על מפרש כדי להוסיף או להסיר אותו מהטאב הפתוח.' : 'בחירת המפרשים — בהגדרות. אחרי הפתיחה יוצגו כאן כל המפרשים הזמינים.'}</p>
       </div>
       <div class="res-row">
-        <div class="res-head">חומרי PDF לעמוד</div>
-        <p class="muted">מראי מקומות, סיכומי אורייתא, צורת הדף והערות עיון — בהתאם לחומרים שאורייתא פרסמה לעמוד הזה.</p>
-        <div class="actions"><button class="btn btn-primary" data-url="${esc(amudUrl)}">פתח חומרי PDF ל${esc(C.shortLabel(a))}</button></div>
-      </div>
-      <div class="res-row">
-        <div class="res-head">שיעורי וידאו ואודיו</div>
-        <p class="muted">האתר הרשמי מאפשר לבחור מגיד שיעור, מסכת ועמוד, ולהציג שיעורי Video/Audio זמינים.</p>
+        <div class="res-head">חומרי לימוד רשמיים לפי העמוד</div>
+        <p class="muted">PDFים: מראי מקומות, סיכומי אורייתא, צורת הדף והערות עיון. שיעורים: וידאו ואודיו לפי מגיד שיעור, מסכת ועמוד. חידונים ובחינות מוצגים בערוצים הרשמיים של אורייתא.</p>
         <div class="actions wrap">
-          <button class="btn btn-primary" data-url="${esc(amudUrl)}">פתח שיעורים ל${esc(C.shortLabel(a))}</button>
-          <button class="btn btn-outline" data-url="${esc(C.SITE_LECTURERS)}">כל מגידי השיעור</button>
+          <button class="btn btn-primary" data-url="${esc(amudUrl)}">${hasDirectAmudLink ? `פתח חומרי עזר ל${esc(C.shortLabel(a))}` : 'פתח את מאגר חומרי העזר של אורייתא'}</button>
+          <button class="btn btn-outline" data-url="${esc(C.SITE_LECTURERS)}">מגידי שיעור ומאגר שיעורים</button>
         </div>
+        ${hasDirectAmudLink ? '' : '<p class="muted">האתר ייפתח בדף הכללי; בחרו בו את המסכת והעמוד המבוקשים.</p>'}
+        <p class="muted">האתר הרשמי מציג בנפרד אזורי PDF ו-Video/Audio. התוסף מפנה לשם ואינו ממציא כתובות או משלים חומר חסר.</p>
       </div>
       ${others.length ? `<div class="res-row">
         <div class="res-head">עמודים נוספים לחזרה השבועית</div>
         <div class="actions wrap">${others.map(siteBtn).join('')}</div>
       </div>` : ''}
-      <p class="muted">הקישורים פותחים את המקור הרשמי של אורייתא. הזמינות משתנה לפי העמוד והמגיד; התוסף אינו יוצר או משלים חומרי לימוד.</p>
     </div>`;
   }
 
