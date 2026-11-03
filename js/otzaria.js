@@ -187,6 +187,38 @@
     return !!(r && r.success && r.data);
   }
 
+  /** בדיקת קיום קובץ בשרת מרוחק באמצעות HEAD — בלי להוריד את גוף ה-PDF. */
+  async function probeRemoteFile(url, timeoutMs) {
+    const stream = await call('network.fetchStream', {
+      url,
+      method: 'HEAD',
+      timeoutMs: timeoutMs || 12000
+    });
+    if (!stream || typeof stream[Symbol.asyncIterator] !== 'function') {
+      return {
+        ok: false,
+        status: null,
+        error: stream && stream.error && stream.error.message
+          ? stream.error.message
+          : 'בדיקת הקובץ לא החזירה זרם HTTP'
+      };
+    }
+    try {
+      for await (const item of stream) {
+        if (item && item.type === 'response') {
+          return {
+            ok: !!item.ok && item.status >= 200 && item.status < 300,
+            status: item.status,
+            headers: item.headers || {}
+          };
+        }
+      }
+      return { ok: false, status: null, error: 'השרת לא החזיר כותרות תשובה' };
+    } catch (error) {
+      return { ok: false, status: null, error: error && error.message ? error.message : String(error) };
+    }
+  }
+
   /** הורדת PDF ממקור שאושר במניפסט התוסף וברשימת הרשת של אוצריא. */
   async function fetchRemoteFile(url, maxBytes, timeoutMs) {
     return call('network.fetchFile', { url, maxBytes: maxBytes || 25 * 1024 * 1024, timeoutMs: timeoutMs || 60000 });
@@ -204,5 +236,5 @@
     return !!(r && r.success);
   }
 
-  window.Otz = { HAS_OTZ, call, load, save, boot, openAmud, jewishDateInfo, notify, openUrl, fetchRemoteFile, getCommentators, applyCommentators, toggleCommentator };
+  window.Otz = { HAS_OTZ, call, load, save, boot, openAmud, jewishDateInfo, notify, openUrl, probeRemoteFile, fetchRemoteFile, getCommentators, applyCommentators, toggleCommentator };
 })();
