@@ -22,14 +22,35 @@
     'תמיד': 'Tamid', 'מדות': 'Middos', 'נדה': 'Niddah'
   };
 
-  // Observed Oraysa numbering: 3A starts around daf 20, 3B around daf 25,
-  // 4A around daf 30, etc. On a cross-masechta test the sequence restarts
-  // from the first daf of the new (final) masechta.
+  // The number/side usually tracks the approximate daf interval, but
+  // Oraysa's published examples show exceptions (e.g. Chagiga 21-25 is #2B).
+  // Probe a small neighborhood in a deterministic order instead of assuming
+  // a single exact label.
   function labelCandidates(startDaf) {
     const daf = Math.max(2, Math.floor(Number(startDaf) || 2));
     const number = Math.max(1, Math.floor(daf / 10) + 1);
     const side = daf % 10 >= 5 ? 'B' : 'A';
-    return [number + side];
+    const other = side === 'A' ? 'B' : 'A';
+    const raw = [
+      number + side,
+      (number - 1) + other,
+      number + other,
+      (number - 1) + side,
+      (number + 1) + side,
+      (number + 1) + other
+    ];
+    return [...new Set(raw.filter((value) => /^\\d+[AB]$/.test(value)))];
+  }
+
+  function sequenceDaf(bechina, segments) {
+    const list = Array.isArray(segments) && segments.length
+      ? segments
+      : Array.isArray(bechina && bechina.segments) ? bechina.segments : [];
+    if (list.length) return list.length > 1 ? list[list.length - 1].startDaf : list[0].startDaf;
+    if (bechina && bechina.from && bechina.to) {
+      return bechina.from.masechet === bechina.to.masechet ? bechina.from.daf : bechina.to.daf;
+    }
+    return null;
   }
 
   function filenameCandidates(bechina, label, kind) {
@@ -96,5 +117,5 @@
     });
   }
 
-  return { labelCandidates, filenameCandidates, SLUGS };
+  return { labelCandidates, sequenceDaf, filenameCandidates, SLUGS };
 });
