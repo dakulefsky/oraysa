@@ -231,6 +231,7 @@
     'ביצה': 19, 'תענית': 22, 'מגילה': 20, 'מועד קטן': 24, 'חגיגה': 26, 'יבמות': 27,
   };
   const SITE = 'https://www.oraysa.org';
+  const SITE_LECTURERS = `${SITE}/en/lecturers`;
   const SITE_BECHINOS = `${SITE}/en/lecturers/${encodeURIComponent('מבחני-אורייתא')}`;
   const MOODLE = 'https://moodle.oraysa.org';
 
@@ -307,6 +308,6 @@
     amudAt, findMasechet, indexOf, dayOfIndex, learningIndexOn, weekStartIndex, dayPlan, masechetSpan,
     hebNum, shortLabel, longLabel, dafMark, tocRef, hebrewDate, gregText, normalize,
     DAY_NAMES, DAY_LETTERS, GREG_MONTHS,
-    siteUrl, moodleUrl, hasSiteResources, isBechinaDay, bechinaFor, nextBechinaDays, SITE, SITE_BECHINOS, MOODLE,
+    siteUrl, moodleUrl, hasSiteResources, isBechinaDay, bechinaFor, nextBechinaDays, SITE, SITE_LECTURERS, SITE_BECHINOS, MOODLE,
   };
 });

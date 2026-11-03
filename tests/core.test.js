@@ -103,6 +103,7 @@ test('oraysa.org resource links', () => {
   assert.equal(C.hasSiteResources(C.amudAt(C.findMasechet('נדרים').startIdx)), false);
   assert.equal(C.siteUrl(C.amudAt(C.findMasechet('נדרים').startIdx)), 'https://www.oraysa.org/en');
   assert.equal(C.moodleUrl('יבמות'), 'https://moodle.oraysa.org/course/view.php?id=27');
+  assert.equal(C.SITE_LECTURERS, 'https://www.oraysa.org/en/lecturers');
 });
 
 test('bi-weekly bechina covers the previous two weeks (official Pesachim #4A, 2.10.2022)', () => {
