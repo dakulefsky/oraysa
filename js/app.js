@@ -179,6 +179,7 @@
 
   const ORAYSA_MEDIA_BASE = 'https://oraysa-media.s3.amazonaws.com/oraysa/';
   const BECHINA_DISCOVERY_CACHE_KEY = 'bechinaDiscoveryV3';
+  const BECHINA_SCAN_META_PREFIX = '__scan__:';
   let bechinaDiscoveryPromise = null;
 
   function bechinaDiscoveryWindows() {
@@ -309,7 +310,12 @@
       state.bechinaScanMessage = 'אין כרגע טווח בחינה שאפשר לבדוק.';
       return;
     }
-    if (!force && state.bechinaScanKey === scanKey) return;
+    const metaKey = BECHINA_SCAN_META_PREFIX + scanKey;
+    const previousMeta = state.bechinaCache && state.bechinaCache[metaKey];
+    const metaAge = previousMeta ? Date.now() - previousMeta.scannedAt : Infinity;
+    const metaTtl = previousMeta && previousMeta.complete ? 12 * 60 * 60 * 1000 : 5 * 60 * 1000;
+    const metaIsFresh = !!previousMeta && metaAge >= 0 && metaAge < metaTtl;
+    if (!force && state.bechinaScanKey === scanKey && metaIsFresh) return;
 
     state.bechinaScanKey = scanKey;
     state.bechinaDocs = [];
@@ -357,6 +363,7 @@
         }
       }
 
+      cache[metaKey] = { scannedAt: Date.now(), complete: !scanIncomplete };
       state.bechinaCache = cache;
       state.bechinaDocs = foundDocs;
       state.bechinaLoading = false;
@@ -445,8 +452,13 @@
     // scan key synchronously, preventing render loops.
     const expectedScanKey = bechinaDiscoveryWindows()
       .map((item) => bechinaRangeKey(item.bechina)).join('|');
-    if (Otz.HAS_OTZ && expectedScanKey &&
-        state.bechinaScanKey !== expectedScanKey && !state.bechinaLoading) {
+    const metaKey = BECHINA_SCAN_META_PREFIX + expectedScanKey;
+    const cachedMeta = state.bechinaCache && state.bechinaCache[metaKey];
+    const metaAge = cachedMeta ? Date.now() - cachedMeta.scannedAt : Infinity;
+    const metaTtl = cachedMeta && cachedMeta.complete ? 12 * 60 * 60 * 1000 : 5 * 60 * 1000;
+    const shouldRetry = !cachedMeta || metaAge < 0 || metaAge >= metaTtl;
+    if (Otz.HAS_OTZ && expectedScanKey && !state.bechinaLoading &&
+        (state.bechinaScanKey !== expectedScanKey || shouldRetry)) {
       discoverOraysaDocuments(false);
     }
   }
