@@ -197,6 +197,7 @@
     if (!stream || typeof stream[Symbol.asyncIterator] !== 'function') {
       return {
         ok: false,
+        definitive: false,
         status: null,
         error: stream && stream.error && stream.error.message
           ? stream.error.message
@@ -206,16 +207,22 @@
     try {
       for await (const item of stream) {
         if (item && item.type === 'response') {
+          const status = Number(item.status);
+          // 403 is treated as a definitive non-public candidate on this
+          // public S3 bucket. Transport, rate-limit, redirect and server
+          // failures are transient and must not be cached as "not found".
+          const definitive = (status >= 200 && status < 300) || status === 403 || status === 404;
           return {
-            ok: !!item.ok && item.status >= 200 && item.status < 300,
-            status: item.status,
+            ok: !!item.ok && status >= 200 && status < 300,
+            definitive,
+            status,
             headers: item.headers || {}
           };
         }
       }
-      return { ok: false, status: null, error: 'השרת לא החזיר כותרות תשובה' };
+      return { ok: false, definitive: false, status: null, error: 'השרת לא החזיר כותרות תשובה' };
     } catch (error) {
-      return { ok: false, status: null, error: error && error.message ? error.message : String(error) };
+      return { ok: false, definitive: false, status: null, error: error && error.message ? error.message : String(error) };
     }
   }
 
