@@ -291,7 +291,7 @@
       const identity = answerCandidates[i].kind + ':' + answerCandidates[i].language;
       if (seen.has(identity)) continue;
       seen.add(identity);
-      docs.push(createDiscoveredDocument(answerCandidates[i], bechina, label, dateDn));
+      docs.push(createDiscoveredDocument(answerCandidates[i], bechina, matchedLabel, dateDn));
     }
     return { docs, complete: true };
   }
