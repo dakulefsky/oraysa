@@ -206,7 +206,7 @@
     return bechina.from.idx + ':' + bechina.to.idx;
   }
 
-  function createDiscoveredDocument(candidate, bechina, label, dateDn) {
+  function createDiscoveredDocument(candidate, bechina, matchedLabel, dateDn) {
     const isAnswers = candidate.kind === 'answers';
     const title = (isAnswers ? 'תשובות לבחינה' : 'בחינה') +
       ' ' + bechina.to.masechet + ' #' + label +
@@ -247,30 +247,41 @@
   async function scanBechinaRange(bechina, dateDn) {
     const segments = bechinaFilenameSegments(bechina);
     if (!segments.length) return { docs: [], complete: false };
-    const sequenceDaf = segments.length > 1
-      ? segments[segments.length - 1].startDaf
-      : segments[0].startDaf;
-    const label = BechinaDiscovery.labelCandidates(sequenceDaf)[0];
     const searchableRange = Object.assign({}, bechina, { segments });
-    const testCandidates = BechinaDiscovery.filenameCandidates(searchableRange, label, 'test');
-    const testChecks = await Promise.all(testCandidates.map((candidate) =>
-      Otz.probeRemoteFile(ORAYSA_MEDIA_BASE + candidate.path, 12000)
-    ));
-    if (!discoveryChecksComplete(testChecks)) return { docs: [], complete: false };
-
-    const matches = testCandidates.filter((candidate, index) => testChecks[index] && testChecks[index].ok);
-    if (!matches.length) return { docs: [], complete: true };
-
+    const sequenceDaf = BechinaDiscovery.sequenceDaf(searchableRange, segments);
+    const labels = BechinaDiscovery.labelCandidates(sequenceDaf);
     const docs = [];
     const seen = new Set();
-    for (const candidate of matches) {
-      const identity = candidate.kind + ':' + candidate.language;
-      if (seen.has(identity)) continue;
-      seen.add(identity);
-      docs.push(createDiscoveredDocument(candidate, bechina, label, dateDn));
+    let matchedLabel = null;
+
+    for (const label of labels) {
+      const testCandidates = BechinaDiscovery.filenameCandidates(searchableRange, label, 'test');
+      const testChecks = await Promise.all(testCandidates.map((candidate) =>
+        Otz.probeRemoteFile(ORAYSA_MEDIA_BASE + candidate.path, 12000)
+      ));
+      if (!discoveryChecksComplete(testChecks)) return { docs, complete: false };
+
+      const matches = testCandidates.filter((candidate, index) => testChecks[index] && testChecks[index].ok);
+      if (!matches.length) {
+        // Leave time for Otzaria's bridge rate limiter to refill between
+        // batches when several naming variants need to be tested.
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        continue;
+      }
+
+      matchedLabel = label;
+      for (const candidate of matches) {
+        const identity = candidate.kind + ':' + candidate.language;
+        if (seen.has(identity)) continue;
+        seen.add(identity);
+        docs.push(createDiscoveredDocument(candidate, bechina, matchedLabel, dateDn));
+      }
+      break;
     }
 
-    const answerCandidates = BechinaDiscovery.filenameCandidates(searchableRange, label, 'answers');
+    if (!matchedLabel) return { docs: [], complete: true };
+
+    const answerCandidates = BechinaDiscovery.filenameCandidates(searchableRange, matchedLabel, 'answers');
     const answerChecks = await Promise.all(answerCandidates.map((candidate) =>
       Otz.probeRemoteFile(ORAYSA_MEDIA_BASE + candidate.path, 12000)
     ));
