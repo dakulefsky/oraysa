@@ -37,6 +37,12 @@ test('builds the observed cross-masechta naming convention', () => {
   assert.ok(names.some((x) =>
     x.path === 'Oraysa-bechina-Yevamos-1A-Chagiga-26-27-Yevamos-2-5.pdf'
   ));
+  assert.ok(names.some((x) =>
+    x.path === 'Oraysa-bechina-Yevamos-1A-Chagiga-26-27-Yevamos-2-5-English.pdf'
+  ));
+  assert.ok(names.some((x) =>
+    x.path === 'Oraysa_bechina_Yevamos_1A_Chagiga_26_27_Yevamos_2_5_English.pdf'
+  ));
 });
 
 test('retains the earlier compact cross-masechta filename variant', () => {
