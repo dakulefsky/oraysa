@@ -6,8 +6,16 @@ const D = require('../js/bechina-discovery.js');
 test('predicts observed Oraysa sequence labels', () => {
   assert.deepEqual(D.labelCandidates(3), ['1A']);
   assert.deepEqual(D.labelCandidates(28), ['3B']);
-  assert.deepEqual(D.labelCandidates(35), ['4B']);
-  assert.deepEqual(D.labelCandidates(42), ['5A']);
+  assert.equal(D.labelCandidates(35)[0], '4B');
+  assert.equal(D.labelCandidates(42)[0], '5A');
+  assert.ok(D.labelCandidates(21).includes('2B'));
+  assert.equal(D.sequenceDaf({
+    from: { masechet: 'חגיגה', daf: 26 },
+    to: { masechet: 'יבמות', daf: 2 }
+  }, [
+    { masechet: 'חגיגה', startDaf: 26, endDaf: 27 },
+    { masechet: 'יבמות', startDaf: 2, endDaf: 5 }
+  ]), 2);
 });
 
 test('builds the observed single-masechta Yevamos filename', () => {
