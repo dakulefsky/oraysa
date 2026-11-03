@@ -209,7 +209,7 @@
   function createDiscoveredDocument(candidate, bechina, label, dateDn) {
     const isAnswers = candidate.kind === 'answers';
     const title = (isAnswers ? 'תשובות לבחינה' : 'בחינה') +
-      ' ' + bechina.from.masechet + ' #' + label +
+      ' ' + bechina.to.masechet + ' #' + label +
       (candidate.language === 'English' ? ' — English' : '');
     return {
       title,
@@ -312,6 +312,7 @@
         : {};
       let foundDocs = [];
       let foundRange = null;
+      let scanIncomplete = false;
       const maxAge = 12 * 60 * 60 * 1000;
 
       for (const item of windows) {
@@ -326,6 +327,8 @@
             break;
           }
           if (previous.complete) continue;
+          scanIncomplete = true;
+          break;
         }
 
         const result = await scanBechinaRange(item.bechina, item.dn);
@@ -337,7 +340,10 @@
           // result but allow a short retry for any missing variants.
           break;
         }
-        if (!result.complete) break;
+        if (!result.complete) {
+          scanIncomplete = true;
+          break;
+        }
       }
 
       state.bechinaCache = cache;
@@ -345,7 +351,9 @@
       state.bechinaLoading = false;
       state.bechinaScanMessage = foundDocs.length
         ? 'נמצאו ' + foundDocs.length + ' קבצים רשמיים תואמים.'
-        : 'לא נמצא PDF תואם לשמות שנבדקו בטווח הבחינה האחרון. אפשר לפתוח את רשימת הטפסים הרשמית באתר אורייתא.';
+        : scanIncomplete
+          ? 'בדיקת המאגר לא הושלמה בגלל תקלה זמנית ברשת או בשרת. אפשר לנסות שוב.'
+          : 'לא נמצא PDF תואם לטווחי הבחינה שנבדקו. אפשר לפתוח את רשימת הטפסים הרשמית באתר אורייתא.';
       await Otz.save(BECHINA_DISCOVERY_CACHE_KEY, cache);
       bechinaDiscoveryPromise = null;
       if (state.tab === 'bechinos') renderBechinos();
