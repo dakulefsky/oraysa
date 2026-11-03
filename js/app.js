@@ -387,6 +387,16 @@
       ${upcoming.map((dn) => bechinaCard(dn, false)).join('')}
       ${past.length ? `<h3 class="section-title">בחינות קודמות</h3>${past.map((dn) => bechinaCard(dn, false)).join('')}` : ''}
     </div>`;
+
+    // Start discovery the first time the user opens this tab, and again when
+    // the scheduled bechina range changes. discoverOraysaDocuments sets its
+    // scan key synchronously, preventing render loops.
+    const expectedScanKey = bechinaDiscoveryWindows()
+      .map((item) => bechinaRangeKey(item.bechina)).join('|');
+    if (Otz.HAS_OTZ && expectedScanKey &&
+        state.bechinaScanKey !== expectedScanKey && !state.bechinaLoading) {
+      discoverOraysaDocuments(false);
+    }
   }
 
   function masechetCard(a) {
