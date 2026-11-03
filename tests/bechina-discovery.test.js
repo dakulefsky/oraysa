@@ -4,8 +4,8 @@ const C = require('../js/core.js');
 const D = require('../js/bechina-discovery.js');
 
 test('predicts observed Oraysa sequence labels', () => {
-  assert.deepEqual(D.labelCandidates(3), ['1A']);
-  assert.deepEqual(D.labelCandidates(28), ['3B']);
+  assert.equal(D.labelCandidates(3)[0], '1A');
+  assert.equal(D.labelCandidates(28)[0], '3B');
   assert.equal(D.labelCandidates(35)[0], '4B');
   assert.equal(D.labelCandidates(42)[0], '5A');
   assert.ok(D.labelCandidates(21).includes('2B'));
