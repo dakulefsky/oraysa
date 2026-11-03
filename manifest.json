@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "com.dakulefsky.oraysa-daily",
   "name": "אורייתא יומי",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "sdkVersion": "1.x",
   "description": "לוח תוכנית אורייתא — עמוד וחזרה: העמוד והחזרה של היום, פתיחה עם מפרשים, חומרי העזר והבחינות של אורייתא, לוח חודשי, איתור תאריך לכל עמוד ומעקב התקדמות.",
   "author": "DanTheMan",
