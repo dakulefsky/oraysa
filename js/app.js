@@ -357,6 +357,9 @@
 
         const result = await scanBechinaRange(item.bechina, item.dn);
         cache[key] = { scannedAt: Date.now(), docs: result.docs, complete: result.complete };
+        // A test PDF may be found even when answer-sheet probes are incomplete.
+        // Preserve that partial success, but keep the overall scan retryable.
+        if (!result.complete) scanIncomplete = true;
         if (result.docs.length) {
           foundDocs = result.docs;
           foundRange = item;
