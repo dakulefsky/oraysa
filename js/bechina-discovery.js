@@ -52,36 +52,44 @@
 
     const finalSlug = normalized[normalized.length - 1].slug;
     const suffixes = kind === 'answers'
-      ? [
-          ['-Answers.pdf', false], ['-Answers-English.pdf', true],
-          ['_Answers.pdf', false], ['_Answers_English.pdf', true]
-        ]
-      : [
-          ['.pdf', false], ['-English.pdf', true],
-          ['.pdf', false], ['_English.pdf', true]
-        ];
+      ? {
+          hyphen: ['-Answers.pdf', '-Answers-English.pdf'],
+          underscore: ['_Answers.pdf', '_Answers_English.pdf']
+        }
+      : {
+          hyphen: ['.pdf', '-English.pdf'],
+          underscore: ['.pdf', '_English.pdf']
+        };
 
+    const addPair = (stem, separator) => {
+      const pair = suffixes[separator];
+      candidates.push({ path: stem + pair[0], kind: kind || 'test', language: 'Hebrew' });
+      candidates.push({ path: stem + pair[1], kind: kind || 'test', language: 'English' });
+    };
+
+    const candidates = [];
     const modernHyphen = normalized.map((s) => s.slug + '-' + s.start + '-' + s.end).join('-');
     const modernUnderscore = normalized.map((s) => s.slug.replace(/-/g, '_') + '_' + s.start + '_' + s.end).join('_');
-    const stems = normalized.length === 1
-      ? [
-          'Oraysa-bechina-' + finalSlug + '-' + label + '-' + normalized[0].start + '-' + normalized[0].end,
-          'Oraysa-bechina-' + finalSlug + '-' + label + '-' + normalized[0].start + '-' + normalized[0].end,
-          'Oraysa_bechina_' + finalSlug.replace(/-/g, '_') + '_' + label + '_' + normalized[0].start + '_' + normalized[0].end,
-          'Oraysa_bechina_' + finalSlug.replace(/-/g, '_') + '_' + label + '_' + normalized[0].start + '_' + normalized[0].end
-        ]
-      : [
-          'Oraysa-bechina-' + finalSlug + '-' + label + '-' + modernHyphen,
-          'Oraysa-bechina-' + normalized[0].slug + '-' + label + '-' + normalized[0].start + '-' + finalSlug + '-' + normalized[normalized.length - 1].end,
-          'Oraysa_bechina_' + finalSlug.replace(/-/g, '_') + '_' + label + '_' + modernUnderscore,
-          'Oraysa_bechina_' + normalized[0].slug.replace(/-/g, '_') + '_' + label + '_' + normalized[0].start + '_' + finalSlug.replace(/-/g, '_') + '_' + normalized[normalized.length - 1].end
-        ];
+    if (normalized.length === 1) {
+      const stem = 'Oraysa-bechina-' + finalSlug + '-' + label + '-' + normalized[0].start + '-' + normalized[0].end;
+      const underscoreStem = 'Oraysa_bechina_' + finalSlug.replace(/-/g, '_') + '_' + label + '_' + normalized[0].start + '_' + normalized[0].end;
+      addPair(stem, 'hyphen');
+      addPair(underscoreStem, 'underscore');
+    } else {
+      // Current cross-masechta pattern prefixes the final masechta and then
+      // lists every masechta segment. Keep the older compact form as fallback.
+      addPair('Oraysa-bechina-' + finalSlug + '-' + label + '-' + modernHyphen, 'hyphen');
+      addPair('Oraysa_bechina_' + finalSlug.replace(/-/g, '_') + '_' + label + '_' + modernUnderscore, 'underscore');
+      const legacyHyphen = 'Oraysa-bechina-' + normalized[0].slug + '-' + label + '-' +
+        normalized[0].start + '-' + finalSlug + '-' + normalized[normalized.length - 1].end;
+      const legacyUnderscore = 'Oraysa_bechina_' + normalized[0].slug.replace(/-/g, '_') + '_' + label + '_' +
+        normalized[0].start + '_' + finalSlug.replace(/-/g, '_') + '_' + normalized[normalized.length - 1].end;
+      addPair(legacyHyphen, 'hyphen');
+      addPair(legacyUnderscore, 'underscore');
+    }
 
     const seen = new Set();
-    return stems.map((stem, index) => {
-      const path = stem + suffixes[index][0];
-      return { path, kind: kind || 'test', language: suffixes[index][1] ? 'English' : 'Hebrew' };
-    }).filter((item) => {
+    return candidates.filter((item) => {
       if (seen.has(item.path)) return false;
       seen.add(item.path);
       return true;
