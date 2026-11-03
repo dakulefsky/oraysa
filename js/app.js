@@ -380,6 +380,10 @@
       state.bechinaLoading = false;
       state.bechinaScanMessage = 'בדיקת המאגר נכשלה: ' +
         (error && error.message ? error.message : 'שגיאת רשת');
+      state.bechinaCache = state.bechinaCache && typeof state.bechinaCache === 'object'
+        ? state.bechinaCache
+        : {};
+      state.bechinaCache[metaKey] = { scannedAt: Date.now(), complete: false };
       bechinaDiscoveryPromise = null;
       if (state.tab === 'bechinos') renderBechinos();
     });
@@ -398,7 +402,11 @@
         await say(result && result.error && result.error.message ? result.error.message : 'ההורדה נכשלה', 'error');
         return;
       }
-      await Otz.openUrl(result.data.url);
+      const opened = await Otz.openUrl(result.data.url);
+      if (!opened) {
+        await say('המסמך ירד למטמון הזמני, אך אוצריא לא הצליחה לפתוח אותו. אפשר לנסות לפתוח שוב או להשתמש במציג PDF חיצוני.', 'error');
+        return;
+      }
       await say('המסמך ירד למטמון הזמני ונפתח. לשמירה קבועה השתמשו באפשרות השמירה של מציג ה-PDF.', 'success');
     } catch (error) {
       await say(error && error.message ? error.message : 'לא ניתן להוריד את המסמך', 'error');
